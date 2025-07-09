@@ -31,3 +31,6 @@ yarn-error.log*
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
+
+# Legacy DND Monster Sheet (copied from old project)
+/DND_Monster_Sheet/.git/

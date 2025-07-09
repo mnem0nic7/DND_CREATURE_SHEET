@@ -16,10 +16,13 @@ export default function RootLayout({
       <body className="min-h-screen bg-dnd-parchment">
         <div className="min-h-screen flex flex-col">
           <header className="bg-dnd-dark text-white shadow-lg">
-            <div className="container mx-auto px-4 py-4">
+            <div className="container mx-auto px-4 py-4 text-center">
               <h1 className="text-3xl font-fantasy font-bold text-dnd-gold">
                 D&D Creature Sheet
               </h1>
+              <p className="text-dnd-parchment mt-2 text-sm">
+                Manage your D&D creatures and monsters with ease
+              </p>
             </div>
           </header>
           <main className="flex-1 container mx-auto px-4 py-8">

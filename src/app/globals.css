@@ -8,29 +8,277 @@
 
 @layer base {
   body {
-    @apply bg-dnd-parchment text-dnd-dark;
+    @apply bg-dnd-dark-900 text-dnd-parchment-100;
     font-family: 'Inter', sans-serif;
+    background-attachment: fixed;
+    background-size: cover;
+    /* Dark D&D Beyond style background */
+    background-image: 
+      radial-gradient(circle at 20% 50%, rgba(255, 102, 0, 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(220, 20, 60, 0.08) 0%, transparent 50%),
+      radial-gradient(circle at 40% 80%, rgba(255, 140, 0, 0.03) 0%, transparent 50%),
+      linear-gradient(135deg, rgba(13, 17, 23, 0.95) 0%, rgba(26, 29, 32, 0.98) 100%);
+    min-height: 100vh;
   }
   
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Cinzel', serif;
+    @apply text-dnd-orange-400;
+  }
+  
+  /* Custom scrollbar - dark theme */
+  ::-webkit-scrollbar {
+    width: 12px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-dnd-dark-800;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-dnd-orange-600 rounded-full;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-dnd-orange-500;
   }
 }
 
 @layer components {
   .dnd-card {
-    @apply bg-white shadow-lg rounded-lg border-2 border-dnd-gold/30 p-6;
+    @apply bg-gradient-to-br from-dnd-dark-800 via-dnd-dark-700 to-dnd-dark-800 shadow-2xl rounded-xl border-2 border-dnd-orange-600/60 p-6 backdrop-blur-sm;
+    box-shadow: 
+      0 20px 40px rgba(0, 0, 0, 0.5),
+      0 8px 16px rgba(255, 102, 0, 0.2),
+      inset 0 1px 0 rgba(255, 140, 0, 0.3),
+      inset 0 -1px 0 rgba(220, 20, 60, 0.2);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .dnd-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 102, 0, 0.05) 0%, rgba(220, 20, 60, 0.03) 100%);
+    pointer-events: none;
+  }
+  
+  .dnd-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+      0 25px 50px rgba(0, 0, 0, 0.7),
+      0 12px 24px rgba(255, 102, 0, 0.4),
+      inset 0 1px 0 rgba(255, 140, 0, 0.5),
+      inset 0 -1px 0 rgba(220, 20, 60, 0.3);
   }
   
   .dnd-button {
-    @apply bg-dnd-red text-white px-4 py-2 rounded-md hover:bg-dnd-red/80 transition-colors;
+    @apply bg-gradient-to-r from-dnd-red-700 via-dnd-red-600 to-dnd-red-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-300 shadow-lg border border-dnd-red-800;
+    box-shadow: 
+      0 6px 20px rgba(220, 20, 60, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .dnd-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+  }
+  
+  .dnd-button:hover {
+    @apply from-dnd-red-600 via-dnd-red-500 to-dnd-red-600;
+    transform: translateY(-1px);
+    box-shadow: 
+      0 8px 25px rgba(220, 20, 60, 0.6),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+  
+  .dnd-button:hover::before {
+    left: 100%;
+  }
+  
+  .dnd-button:active {
+    transform: translateY(0);
+    box-shadow: 
+      0 4px 15px rgba(220, 20, 60, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
   }
   
   .dnd-input {
-    @apply border-2 border-dnd-gold/50 rounded-md px-3 py-2 focus:outline-none focus:border-dnd-gold;
+    @apply border-2 border-dnd-orange-600/60 bg-dnd-dark-800 text-dnd-parchment-100 rounded-lg px-4 py-3 focus:outline-none focus:border-dnd-orange-500 focus:ring-2 focus:ring-dnd-orange-500/40 shadow-inner transition-all duration-300;
+    box-shadow: 
+      inset 0 2px 4px rgba(0, 0, 0, 0.3),
+      0 1px 0 rgba(255, 102, 0, 0.2);
+  }
+  
+  .dnd-input:focus {
+    @apply bg-dnd-dark-700;
+    box-shadow: 
+      inset 0 2px 4px rgba(0, 0, 0, 0.2),
+      0 0 0 3px rgba(255, 102, 0, 0.2),
+      0 1px 0 rgba(255, 140, 0, 0.4);
   }
   
   .stat-block {
-    @apply bg-gradient-to-br from-dnd-parchment to-amber-50 border-2 border-dnd-gold rounded-lg p-4;
+    @apply bg-gradient-to-br from-dnd-dark-800 via-dnd-dark-700 to-dnd-dark-800 border-4 border-dnd-orange-500 rounded-xl p-6 shadow-2xl;
+    box-shadow: 
+      0 15px 35px rgba(0, 0, 0, 0.6),
+      0 5px 15px rgba(255, 102, 0, 0.3),
+      inset 0 1px 0 rgba(255, 140, 0, 0.3),
+      inset 0 -1px 0 rgba(220, 20, 60, 0.2);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .stat-block::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+      radial-gradient(circle at 10% 20%, rgba(255, 102, 0, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 90% 80%, rgba(220, 20, 60, 0.08) 0%, transparent 50%);
+    pointer-events: none;
+  }
+  
+  /* Navigation card styles */
+  .nav-card {
+    @apply dnd-card hover:border-dnd-orange-500 cursor-pointer transition-all duration-300;
+    min-height: 200px;
+  }
+  
+  .nav-card:hover {
+    @apply border-dnd-orange-500 shadow-2xl;
+    transform: translateY(-4px) scale(1.02);
+  }
+  
+  /* Magical glow effect - dark theme */
+  .magical-glow {
+    position: relative;
+  }
+  
+  .magical-glow::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, #FF6600, #FF8C00, #DC143C, #FF6600);
+    border-radius: inherit;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  .magical-glow:hover::after {
+    opacity: 0.4;
+  }
+  
+  /* Creature type badges - dark theme */
+  .creature-badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium shadow-sm;
+  }
+  
+  .creature-badge.aberration {
+    @apply bg-dnd-purple-800 text-dnd-purple-200 border border-dnd-purple-600;
+  }
+  
+  .creature-badge.beast {
+    @apply bg-dnd-emerald-800 text-dnd-emerald-200 border border-dnd-emerald-600;
+  }
+  
+  .creature-badge.celestial {
+    @apply bg-dnd-gold-800 text-dnd-gold-200 border border-dnd-gold-600;
+  }
+  
+  .creature-badge.construct {
+    @apply bg-dnd-silver-800 text-dnd-silver-200 border border-dnd-silver-600;
+  }
+  
+  .creature-badge.dragon {
+    @apply bg-dnd-red-800 text-dnd-red-200 border border-dnd-red-600;
+  }
+  
+  .creature-badge.elemental {
+    @apply bg-dnd-orange-800 text-dnd-orange-200 border border-dnd-orange-600;
+  }
+  
+  .creature-badge.fey {
+    @apply bg-dnd-purple-800 text-dnd-purple-200 border border-dnd-purple-600;
+  }
+  
+  .creature-badge.fiend {
+    @apply bg-dnd-fire-800 text-dnd-fire-200 border border-dnd-fire-600;
+  }
+  
+  .creature-badge.giant {
+    @apply bg-dnd-brown-800 text-dnd-brown-200 border border-dnd-brown-600;
+  }
+  
+  .creature-badge.humanoid {
+    @apply bg-dnd-parchment-800 text-dnd-parchment-200 border border-dnd-parchment-600;
+  }
+  
+  .creature-badge.monstrosity {
+    @apply bg-dnd-dark-800 text-dnd-dark-200 border border-dnd-dark-600;
+  }
+  
+  .creature-badge.ooze {
+    @apply bg-dnd-emerald-800 text-dnd-emerald-200 border border-dnd-emerald-600;
+  }
+  
+  .creature-badge.plant {
+    @apply bg-dnd-emerald-800 text-dnd-emerald-200 border border-dnd-emerald-600;
+  }
+  
+  .creature-badge.undead {
+    @apply bg-dnd-dark-700 text-dnd-dark-100 border border-dnd-dark-500;
+  }
+  
+  /* Dice animation */
+  @keyframes roll {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  .dice-roll {
+    animation: roll 0.5s ease-in-out;
+  }
+  
+  /* Floating animation for magical elements */
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+  
+  .floating {
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  /* Shimmer effect */
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: 200px 0; }
+  }
+  
+  .shimmer {
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    background-size: 200px 100%;
+    animation: shimmer 2s infinite;
   }
 }

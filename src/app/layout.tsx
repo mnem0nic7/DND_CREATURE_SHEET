@@ -13,15 +13,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-dnd-parchment">
+      <body className="min-h-screen" suppressHydrationWarning={true}>
         <div className="min-h-screen flex flex-col">
-          <header className="bg-dnd-dark text-white shadow-lg">
-            <div className="container mx-auto px-4 py-4 text-center">
-              <h1 className="text-3xl font-fantasy font-bold text-dnd-gold">
+          <header className="bg-gradient-to-r from-dnd-dark-900 via-dnd-dark-800 to-dnd-dark-900 text-white shadow-2xl border-b-4 border-dnd-orange-600">
+            <div className="container mx-auto px-4 py-6 text-center relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-dnd-orange-600/10 to-transparent"></div>
+              <h1 className="text-4xl font-fantasy font-bold text-dnd-orange-400 drop-shadow-lg relative z-10">
                 D&D Creature Sheet
               </h1>
-              <p className="text-dnd-parchment mt-2 text-sm">
-                Manage your D&D creatures and monsters with ease
+              <p className="text-dnd-parchment-200 mt-2 text-sm font-medium tracking-wide relative z-10">
+                Manage your D&D creatures with ease
               </p>
             </div>
           </header>

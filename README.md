@@ -30,8 +30,8 @@ A modern, responsive D&D Monster Sheet application built with Next.js 15, TypeSc
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd dnd-creature-sheet
+git clone https://github.com/mnem0nic7/DND_CREATURE_SHEET.git
+cd DND_CREATURE_SHEET
 ```
 
 2. Install dependencies:

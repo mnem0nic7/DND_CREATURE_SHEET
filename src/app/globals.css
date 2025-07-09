@@ -1,0 +1,34 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@layer base {
+  body {
+    @apply bg-dnd-parchment text-dnd-dark;
+    font-family: 'Inter', sans-serif;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Cinzel', serif;
+  }
+}
+
+@layer components {
+  .dnd-card {
+    @apply bg-white shadow-lg rounded-lg border-2 border-dnd-gold/30 p-6;
+  }
+  
+  .dnd-button {
+    @apply bg-dnd-red text-white px-4 py-2 rounded-md hover:bg-dnd-red/80 transition-colors;
+  }
+  
+  .dnd-input {
+    @apply border-2 border-dnd-gold/50 rounded-md px-3 py-2 focus:outline-none focus:border-dnd-gold;
+  }
+  
+  .stat-block {
+    @apply bg-gradient-to-br from-dnd-parchment to-amber-50 border-2 border-dnd-gold rounded-lg p-4;
+  }
+}

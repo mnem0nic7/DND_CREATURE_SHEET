@@ -8,20 +8,20 @@ interface CreatureCardProps {
 export function CreatureCard({ creature, onSelect }: CreatureCardProps) {
   return (
     <div 
-      className="dnd-card hover:shadow-xl transition-shadow cursor-pointer"
+      className="classic-stat-block hover:shadow-xl transition-shadow cursor-pointer"
       onClick={() => onSelect(creature)}
     >
       <div className="flex items-start justify-between mb-4">
         <div>
-          <h3 className="text-xl font-fantasy font-semibold text-dnd-dark">
+          <h3 className="text-lg font-bold">
             {creature.name}
           </h3>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm italic">
             {creature.size} {creature.type}
           </p>
         </div>
         <div className="text-right">
-          <div className="bg-dnd-red text-white px-2 py-1 rounded text-sm font-bold">
+          <div className="bg-red-800 text-white px-2 py-1 rounded text-sm font-bold">
             CR {creature.cr}
           </div>
         </div>
@@ -29,21 +29,21 @@ export function CreatureCard({ creature, onSelect }: CreatureCardProps) {
       
       <div className="space-y-2 text-sm">
         <div className="flex justify-between">
-          <span className="font-medium">Armor Class:</span>
-          <span>{creature.ac}</span>
+          <span className="stat-name">Armor Class</span>
+          <span className="stat-value">{creature.ac}</span>
         </div>
         <div className="flex justify-between">
-          <span className="font-medium">Hit Points:</span>
-          <span>{creature.hp}</span>
+          <span className="stat-name">Hit Points</span>
+          <span className="stat-value">{creature.hp}</span>
         </div>
         <div className="flex justify-between">
-          <span className="font-medium">Speed:</span>
-          <span>{creature.speed}</span>
+          <span className="stat-name">Speed</span>
+          <span className="stat-value">{creature.speed}</span>
         </div>
       </div>
       
-      <div className="mt-4 pt-4 border-t border-dnd-gold/30">
-        <div className="w-full bg-dnd-gold text-dnd-dark py-2 rounded-md hover:bg-dnd-gold/80 transition-colors font-medium flex items-center justify-center gap-2">
+      <div className="mt-4 pt-4 section-divider border-t">
+        <div className="w-full bg-red-800 text-white py-2 rounded-md hover:bg-red-700 transition-colors font-medium flex items-center justify-center gap-2">
           View Details
         </div>
       </div>

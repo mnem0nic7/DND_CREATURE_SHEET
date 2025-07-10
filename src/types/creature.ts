@@ -1,12 +1,27 @@
+export interface SpeedEntry {
+  type: string
+  distance: string
+}
+
 export interface Creature {
   id: number
   name: string
   type: string
   cr: string
   size: string
+  alignment?: string
   ac: string
+  armorType?: string
+  armorSubtype?: string
+  armorModifier?: number
+  hasShield?: boolean
+  shieldModifier?: number
+  hasMageArmor?: boolean
   hp: string
+  hitDiceCount?: number
+  hitDiceType?: string
   speed: string
+  speeds?: SpeedEntry[]
   str: number
   dex: number
   con: number

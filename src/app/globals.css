@@ -8,50 +8,140 @@
 
 @layer base {
   body {
-    @apply bg-dnd-dark-900 text-dnd-parchment-100;
+    @apply bg-gradient-to-br from-dnd-ocean-50 via-dnd-seashell-50 to-dnd-aqua-50 text-dnd-ocean-800;
     font-family: 'Inter', sans-serif;
     background-attachment: fixed;
     background-size: cover;
-    /* Dark D&D Beyond style background */
+    background-position: center bottom;
+    /* Beautiful beach-inspired background with ocean waves and sandy shores */
     background-image: 
-      radial-gradient(circle at 20% 50%, rgba(255, 102, 0, 0.05) 0%, transparent 50%),
-      radial-gradient(circle at 80% 20%, rgba(220, 20, 60, 0.08) 0%, transparent 50%),
-      radial-gradient(circle at 40% 80%, rgba(255, 140, 0, 0.03) 0%, transparent 50%),
-      linear-gradient(135deg, rgba(13, 17, 23, 0.95) 0%, rgba(26, 29, 32, 0.98) 100%);
+      /* Gentle ocean sparkles */
+      radial-gradient(circle at 25% 20%, rgba(34, 211, 238, 0.08) 0%, transparent 30%),
+      radial-gradient(circle at 75% 30%, rgba(56, 189, 248, 0.06) 0%, transparent 35%),
+      radial-gradient(circle at 60% 80%, rgba(251, 146, 60, 0.05) 0%, transparent 25%),
+      radial-gradient(circle at 30% 70%, rgba(251, 113, 133, 0.04) 0%, transparent 30%),
+      
+      /* Ocean waves and sandy beach layers */
+      linear-gradient(180deg, 
+        rgba(240, 249, 255, 0.0) 0%,      /* Clear sky */
+        rgba(224, 242, 254, 0.3) 40%,     /* Light ocean */
+        rgba(186, 230, 253, 0.4) 60%,     /* Deeper ocean */
+        rgba(125, 211, 252, 0.3) 75%,     /* Wave line */
+        rgba(254, 252, 251, 0.6) 85%,     /* Sandy shore */
+        rgba(252, 241, 237, 0.4) 100%     /* Beach sand */
+      );
+    
     min-height: 100vh;
+    position: relative;
+  }
+  
+  /* Ocean waves effect */
+  body::before {
+    content: '';
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 45%;
+    z-index: -1;
+    background: 
+      /* Layered ocean waves */
+      linear-gradient(to right, 
+        transparent 0%, 
+        rgba(125, 211, 252, 0.2) 15%, 
+        rgba(56, 189, 248, 0.3) 30%, 
+        rgba(125, 211, 252, 0.2) 45%, 
+        transparent 60%, 
+        rgba(186, 230, 253, 0.25) 75%, 
+        rgba(56, 189, 248, 0.2) 90%, 
+        transparent 100%
+      );
+    
+    /* Gentle wave shapes */
+    clip-path: polygon(
+      0% 100%, 
+      0% 75%, 
+      8% 70%, 
+      15% 65%, 
+      22% 70%, 
+      30% 60%, 
+      38% 65%, 
+      45% 55%, 
+      52% 60%, 
+      60% 50%, 
+      68% 55%, 
+      75% 45%, 
+      82% 50%, 
+      90% 40%, 
+      97% 45%, 
+      100% 50%, 
+      100% 100%
+    );
+  }
+  
+  /* Sandy beach shoreline */
+  body::after {
+    content: '';
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 25%;
+    z-index: -1;
+    background: 
+      /* Beach sand gradients */
+      linear-gradient(to right, 
+        rgba(254, 252, 251, 0.6) 0%, 
+        rgba(252, 241, 237, 0.7) 25%, 
+        rgba(249, 231, 224, 0.6) 50%, 
+        rgba(252, 241, 237, 0.7) 75%, 
+        rgba(254, 252, 251, 0.6) 100%
+      );
+    
+    /* Gentle sandy shore shape */
+    clip-path: polygon(
+      0% 100%, 
+      0% 70%, 
+      20% 65%, 
+      40% 60%, 
+      60% 65%, 
+      80% 60%, 
+      100% 65%, 
+      100% 100%
+    );
   }
   
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Cinzel', serif;
-    @apply text-dnd-orange-400;
+    @apply text-dnd-ocean-700;
   }
   
-  /* Custom scrollbar - dark theme */
+  /* Beach-themed scrollbar */
   ::-webkit-scrollbar {
-    width: 12px;
+    width: 8px;
   }
   
   ::-webkit-scrollbar-track {
-    @apply bg-dnd-dark-800;
+    @apply bg-dnd-seashell-100;
   }
   
   ::-webkit-scrollbar-thumb {
-    @apply bg-dnd-orange-600 rounded-full;
+    @apply bg-dnd-coral-400 rounded-full;
   }
   
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-dnd-orange-500;
+    @apply bg-dnd-coral-500;
   }
 }
 
 @layer components {
   .dnd-card {
-    @apply bg-gradient-to-br from-dnd-dark-800 via-dnd-dark-700 to-dnd-dark-800 shadow-2xl rounded-xl border-2 border-dnd-orange-600/60 p-6 backdrop-blur-sm;
+    @apply backdrop-blur-sm shadow-xl rounded-2xl border-2 border-dnd-ocean-200 p-6;
+    background: rgba(255, 255, 255, 0.98);
     box-shadow: 
-      0 20px 40px rgba(0, 0, 0, 0.5),
-      0 8px 16px rgba(255, 102, 0, 0.2),
-      inset 0 1px 0 rgba(255, 140, 0, 0.3),
-      inset 0 -1px 0 rgba(220, 20, 60, 0.2);
+      0 25px 50px rgba(14, 165, 233, 0.12),
+      0 12px 24px rgba(251, 113, 133, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 1);
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
@@ -64,23 +154,22 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(135deg, rgba(255, 102, 0, 0.05) 0%, rgba(220, 20, 60, 0.03) 100%);
+    background: linear-gradient(135deg, rgba(34, 211, 238, 0.02) 0%, rgba(251, 113, 133, 0.01) 100%);
     pointer-events: none;
   }
   
   .dnd-card:hover {
-    transform: translateY(-2px);
+    transform: translateY(-4px);
     box-shadow: 
-      0 25px 50px rgba(0, 0, 0, 0.7),
-      0 12px 24px rgba(255, 102, 0, 0.4),
-      inset 0 1px 0 rgba(255, 140, 0, 0.5),
-      inset 0 -1px 0 rgba(220, 20, 60, 0.3);
+      0 25px 50px rgba(14, 165, 233, 0.12),
+      0 12px 24px rgba(251, 113, 133, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.95);
   }
   
   .dnd-button {
-    @apply bg-gradient-to-r from-dnd-red-700 via-dnd-red-600 to-dnd-red-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-300 shadow-lg border border-dnd-red-800;
+    @apply bg-gradient-to-r from-dnd-coral-400 via-dnd-coral-500 to-dnd-coral-400 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 shadow-lg border-0;
     box-shadow: 
-      0 6px 20px rgba(220, 20, 60, 0.4),
+      0 8px 24px rgba(251, 113, 133, 0.3),
       inset 0 1px 0 rgba(255, 255, 255, 0.2);
     position: relative;
     overflow: hidden;
@@ -98,10 +187,10 @@
   }
   
   .dnd-button:hover {
-    @apply from-dnd-red-600 via-dnd-red-500 to-dnd-red-600;
-    transform: translateY(-1px);
+    @apply from-dnd-coral-300 via-dnd-coral-400 to-dnd-coral-300;
+    transform: translateY(-2px);
     box-shadow: 
-      0 8px 25px rgba(220, 20, 60, 0.6),
+      0 12px 32px rgba(251, 113, 133, 0.4),
       inset 0 1px 0 rgba(255, 255, 255, 0.3);
   }
   
@@ -112,32 +201,33 @@
   .dnd-button:active {
     transform: translateY(0);
     box-shadow: 
-      0 4px 15px rgba(220, 20, 60, 0.4),
+      0 4px 16px rgba(251, 113, 133, 0.3),
       inset 0 1px 0 rgba(255, 255, 255, 0.1);
   }
   
   .dnd-input {
-    @apply border-2 border-dnd-orange-600/60 bg-dnd-dark-800 text-dnd-parchment-100 rounded-lg px-4 py-3 focus:outline-none focus:border-dnd-orange-500 focus:ring-2 focus:ring-dnd-orange-500/40 shadow-inner transition-all duration-300;
+    @apply border-2 border-dnd-ocean-200 text-dnd-ocean-700 rounded-xl px-4 py-3 focus:outline-none focus:border-dnd-aqua-400 focus:ring-2 shadow-sm transition-all duration-300;
+    background: rgba(255, 255, 255, 0.9);
     box-shadow: 
-      inset 0 2px 4px rgba(0, 0, 0, 0.3),
-      0 1px 0 rgba(255, 102, 0, 0.2);
+      inset 0 1px 2px rgba(14, 165, 233, 0.05),
+      0 1px 0 rgba(255, 255, 255, 0.9);
   }
   
   .dnd-input:focus {
-    @apply bg-dnd-dark-700;
+    @apply bg-white shadow-lg;
     box-shadow: 
-      inset 0 2px 4px rgba(0, 0, 0, 0.2),
-      0 0 0 3px rgba(255, 102, 0, 0.2),
-      0 1px 0 rgba(255, 140, 0, 0.4);
+      inset 0 1px 2px rgba(14, 165, 233, 0.03),
+      0 0 0 3px rgba(34, 211, 238, 0.1),
+      0 4px 16px rgba(34, 211, 238, 0.1);
   }
   
   .stat-block {
-    @apply bg-gradient-to-br from-dnd-dark-800 via-dnd-dark-700 to-dnd-dark-800 border-4 border-dnd-orange-500 rounded-xl p-6 shadow-2xl;
+    @apply backdrop-blur-sm border-2 border-dnd-ocean-300 rounded-2xl p-6 shadow-2xl;
+    background: rgba(255, 255, 255, 0.95);
     box-shadow: 
-      0 15px 35px rgba(0, 0, 0, 0.6),
-      0 5px 15px rgba(255, 102, 0, 0.3),
-      inset 0 1px 0 rgba(255, 140, 0, 0.3),
-      inset 0 -1px 0 rgba(220, 20, 60, 0.2);
+      0 20px 40px rgba(14, 165, 233, 0.1),
+      0 8px 16px rgba(56, 189, 248, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
     position: relative;
     overflow: hidden;
   }
@@ -150,23 +240,36 @@
     right: 0;
     bottom: 0;
     background: 
-      radial-gradient(circle at 10% 20%, rgba(255, 102, 0, 0.1) 0%, transparent 50%),
-      radial-gradient(circle at 90% 80%, rgba(220, 20, 60, 0.08) 0%, transparent 50%);
+      radial-gradient(circle at 10% 20%, rgba(34, 211, 238, 0.03) 0%, transparent 50%),
+      radial-gradient(circle at 90% 80%, rgba(251, 113, 133, 0.02) 0%, transparent 50%);
     pointer-events: none;
   }
   
-  /* Navigation card styles */
+  /* Beach-themed navigation card styles with maximum contrast */
   .nav-card {
-    @apply dnd-card hover:border-dnd-orange-500 cursor-pointer transition-all duration-300;
+    @apply dnd-card hover:border-dnd-aqua-400 cursor-pointer transition-all duration-300;
     min-height: 200px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(248, 252, 255, 1) 100%);
+    border: 3px solid rgba(14, 165, 233, 0.5);
+    box-shadow: 
+      0 30px 60px rgba(14, 165, 233, 0.25),
+      0 15px 30px rgba(251, 113, 133, 0.15),
+      0 8px 16px rgba(0, 0, 0, 0.1),
+      inset 0 2px 0 rgba(255, 255, 255, 1);
   }
   
   .nav-card:hover {
-    @apply border-dnd-orange-500 shadow-2xl;
-    transform: translateY(-4px) scale(1.02);
+    @apply border-dnd-aqua-500 shadow-2xl;
+    transform: translateY(-8px) scale(1.03);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(240, 249, 255, 1) 100%);
+    box-shadow: 
+      0 35px 70px rgba(14, 165, 233, 0.3),
+      0 18px 36px rgba(251, 113, 133, 0.18),
+      0 12px 24px rgba(0, 0, 0, 0.15),
+      inset 0 2px 0 rgba(255, 255, 255, 1);
   }
   
-  /* Magical glow effect - dark theme */
+  /* Ocean-inspired magical glow effect */
   .magical-glow {
     position: relative;
   }
@@ -178,7 +281,7 @@
     left: -2px;
     right: -2px;
     bottom: -2px;
-    background: linear-gradient(45deg, #FF6600, #FF8C00, #DC143C, #FF6600);
+    background: linear-gradient(45deg, #22D3EE, #38BDF8, #FB7185, #22D3EE);
     border-radius: inherit;
     z-index: -1;
     opacity: 0;
@@ -186,70 +289,147 @@
   }
   
   .magical-glow:hover::after {
-    opacity: 0.4;
+    opacity: 0.15;
   }
   
-  /* Creature type badges - dark theme */
+  /* Beach-themed creature type badges */
   .creature-badge {
     @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium shadow-sm;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%);
+    backdrop-filter: blur(8px);
   }
   
   .creature-badge.aberration {
-    @apply bg-dnd-purple-800 text-dnd-purple-200 border border-dnd-purple-600;
+    @apply bg-gradient-to-r from-purple-100 to-indigo-100 text-purple-700 border border-purple-200;
   }
   
   .creature-badge.beast {
-    @apply bg-dnd-emerald-800 text-dnd-emerald-200 border border-dnd-emerald-600;
+    @apply bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-700 border border-emerald-200;
   }
   
   .creature-badge.celestial {
-    @apply bg-dnd-gold-800 text-dnd-gold-200 border border-dnd-gold-600;
+    @apply bg-gradient-to-r from-dnd-sand-100 to-amber-100 text-dnd-sand-700 border border-dnd-sand-200;
   }
   
   .creature-badge.construct {
-    @apply bg-dnd-silver-800 text-dnd-silver-200 border border-dnd-silver-600;
+    @apply bg-gradient-to-r from-slate-100 to-zinc-100 text-slate-700 border border-slate-200;
   }
   
   .creature-badge.dragon {
-    @apply bg-dnd-red-800 text-dnd-red-200 border border-dnd-red-600;
+    @apply bg-gradient-to-r from-dnd-coral-100 to-rose-100 text-dnd-coral-700 border border-dnd-coral-200;
   }
   
   .creature-badge.elemental {
-    @apply bg-dnd-orange-800 text-dnd-orange-200 border border-dnd-orange-600;
+    @apply bg-gradient-to-r from-dnd-sunset-100 to-orange-100 text-dnd-sunset-700 border border-dnd-sunset-200;
   }
   
   .creature-badge.fey {
-    @apply bg-dnd-purple-800 text-dnd-purple-200 border border-dnd-purple-600;
+    @apply bg-gradient-to-r from-pink-100 to-fuchsia-100 text-pink-700 border border-pink-200;
   }
   
   .creature-badge.fiend {
-    @apply bg-dnd-fire-800 text-dnd-fire-200 border border-dnd-fire-600;
+    @apply bg-gradient-to-r from-red-100 to-dnd-coral-100 text-red-700 border border-red-200;
   }
   
   .creature-badge.giant {
-    @apply bg-dnd-brown-800 text-dnd-brown-200 border border-dnd-brown-600;
+    @apply bg-gradient-to-r from-stone-100 to-neutral-100 text-stone-700 border border-stone-200;
   }
   
   .creature-badge.humanoid {
-    @apply bg-dnd-parchment-800 text-dnd-parchment-200 border border-dnd-parchment-600;
+    @apply bg-gradient-to-r from-dnd-ocean-100 to-blue-100 text-dnd-ocean-700 border border-dnd-ocean-200;
   }
   
   .creature-badge.monstrosity {
-    @apply bg-dnd-dark-800 text-dnd-dark-200 border border-dnd-dark-600;
+    @apply bg-gradient-to-r from-gray-100 to-slate-100 text-gray-700 border border-gray-200;
   }
   
   .creature-badge.ooze {
-    @apply bg-dnd-emerald-800 text-dnd-emerald-200 border border-dnd-emerald-600;
+    @apply bg-gradient-to-r from-lime-100 to-green-100 text-lime-700 border border-lime-200;
   }
   
   .creature-badge.plant {
-    @apply bg-dnd-emerald-800 text-dnd-emerald-200 border border-dnd-emerald-600;
+    @apply bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 border border-green-200;
   }
   
   .creature-badge.undead {
-    @apply bg-dnd-dark-700 text-dnd-dark-100 border border-dnd-dark-500;
+    @apply bg-gradient-to-r from-dnd-seashell-200 to-stone-100 text-dnd-seashell-700 border border-dnd-seashell-300;
   }
   
+  /* Classic D&D stat block styling - traditional parchment look */
+  .classic-stat-block {
+    @apply rounded-lg p-6 shadow-2xl border-2;
+    background: linear-gradient(135deg, #F5F5DC 0%, #FFF8DC 50%, #F5F5DC 100%);
+    border-color: #8B4513;
+    color: #2F1B14;
+    font-family: 'Georgia', serif;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .classic-stat-block::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+      radial-gradient(circle at 20% 20%, rgba(139, 69, 19, 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(160, 82, 45, 0.03) 0%, transparent 50%);
+    pointer-events: none;
+  }
+  
+  .classic-stat-block h1,
+  .classic-stat-block h2,
+  .classic-stat-block h3 {
+    font-family: 'Georgia', serif;
+    color: #8B0000;
+    font-weight: bold;
+  }
+  
+  .classic-stat-block .stat-name {
+    color: #8B0000;
+    font-weight: bold;
+  }
+  
+  .classic-stat-block .stat-value {
+    color: #2F1B14;
+  }
+  
+  .classic-stat-block .section-divider {
+    /* Horizontal isosceles triangle divider - pointing right, longer and narrower */
+    margin: 20px 0;
+    height: 0;
+    width: 0;
+    border-top: 3px solid transparent;
+    border-bottom: 3px solid transparent;
+    border-left: 800px solid #8B0000; /* Same color as name text */
+    position: relative;
+  }
+  
+  .classic-stat-block .ability-scores {
+    @apply grid grid-cols-6 gap-2 text-center;
+  }
+  
+  .classic-stat-block .ability-score {
+    @apply flex flex-col items-center;
+  }
+  
+  .classic-stat-block .ability-score .ability-name {
+    @apply text-xs font-bold uppercase mb-1;
+    color: #8B0000;
+  }
+  
+  .classic-stat-block .ability-score .ability-value {
+    @apply text-sm font-bold;
+    color: #2F1B14;
+  }
+  
+  .classic-stat-block .ability-score .ability-modifier {
+    @apply text-xs;
+    color: #555;
+  }
+
   /* Dice animation */
   @keyframes roll {
     0% { transform: rotate(0deg); }

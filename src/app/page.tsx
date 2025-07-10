@@ -1,13 +1,39 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Search, Plus, Filter, BookOpen, FileText, FolderOpen } from 'lucide-react'
 import { CreatureCard } from '@/components/CreatureCard'
 import { StatBlock } from '@/components/StatBlock'
 import { CreatureDisplay } from '@/components/CreatureDisplay'
 import { sampleCreatures } from '@/data/creatures'
 import { Creature } from '@/types/creature'
-import newCreatureData from '@/data/new_creature_cr0.json'
+import { getStoredCreature } from '@/lib/storage'
+
+// Default new creature template
+const newCreatureTemplate: Creature = {
+  id: 0,
+  name: 'New Creature',
+  type: 'Type',
+  cr: '0 (10 XP)',
+  size: 'Size',
+  alignment: 'Unaligned',
+  ac: '10',
+  armorType: 'None',
+  armorSubtype: 'Unarmored',
+  armorModifier: 0,
+  hasShield: false,
+  hp: '1 (1d8)',
+  speed: '30 ft.',
+  str: 10,
+  dex: 10,
+  con: 10,
+  int: 10,
+  wis: 10,
+  cha: 10,
+  senses: ['Passive Perception 10'],
+  languages: ['Common'],
+  actions: []
+}
 
 type ViewMode = 'home' | 'browse' | 'new' | 'existing'
 
@@ -16,6 +42,15 @@ export default function HomePage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedFilter, setSelectedFilter] = useState('all')
   const [selectedCreature, setSelectedCreature] = useState<Creature | null>(null)
+  const [newCreature, setNewCreature] = useState<Creature>(newCreatureTemplate)
+
+  // Load saved new creature from localStorage on mount
+  useEffect(() => {
+    const savedCreature = getStoredCreature(0) // ID 0 is for new creatures
+    if (savedCreature) {
+      setNewCreature(savedCreature)
+    }
+  }, [])
 
   const filteredCreatures = sampleCreatures.filter(creature => {
     const matchesSearch = creature.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -36,13 +71,13 @@ export default function HomePage() {
           onClick={() => setViewMode('new')}
         >
           <div className="text-center">
-            <div className="bg-gradient-to-br from-dnd-red-600 to-dnd-red-700 text-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 shadow-lg floating">
+            <div className="bg-gradient-to-br from-dnd-coral-600 to-dnd-coral-700 text-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 shadow-lg floating">
               <Plus className="w-8 h-8" />
             </div>
-            <h2 className="text-2xl font-fantasy font-semibold text-dnd-orange-400 mb-2">
+            <h2 className="text-2xl font-fantasy font-semibold text-dnd-ocean-700 mb-2">
               New
             </h2>
-            <p className="text-dnd-parchment-300">
+            <p className="text-dnd-ocean-600 font-medium">
               Create a new creature from scratch with custom stats and abilities
             </p>
           </div>
@@ -54,13 +89,13 @@ export default function HomePage() {
           onClick={() => setViewMode('existing')}
         >
           <div className="text-center">
-            <div className="bg-gradient-to-br from-dnd-orange-600 to-dnd-orange-700 text-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 shadow-lg floating" style={{ animationDelay: '0.5s' }}>
+            <div className="bg-gradient-to-br from-dnd-sunset-600 to-dnd-sunset-700 text-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 shadow-lg floating" style={{ animationDelay: '0.5s' }}>
               <FileText className="w-8 h-8" />
             </div>
-            <h2 className="text-2xl font-fantasy font-semibold text-dnd-orange-400 mb-2">
+            <h2 className="text-2xl font-fantasy font-semibold text-dnd-ocean-700 mb-2">
               Existing
             </h2>
-            <p className="text-dnd-parchment-300">
+            <p className="text-dnd-ocean-600 font-medium">
               Manage and edit your saved creatures and custom monsters
             </p>
           </div>
@@ -72,13 +107,13 @@ export default function HomePage() {
           onClick={() => setViewMode('browse')}
         >
           <div className="text-center">
-            <div className="bg-gradient-to-br from-dnd-fire-600 to-dnd-fire-700 text-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 shadow-lg floating" style={{ animationDelay: '1s' }}>
+            <div className="bg-gradient-to-br from-dnd-aqua-600 to-dnd-aqua-700 text-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 shadow-lg floating" style={{ animationDelay: '1s' }}>
               <FolderOpen className="w-8 h-8" />
             </div>
-            <h2 className="text-2xl font-fantasy font-semibold text-dnd-orange-400 mb-2">
+            <h2 className="text-2xl font-fantasy font-semibold text-dnd-ocean-700 mb-2">
               Browse
             </h2>
-            <p className="text-dnd-parchment-300">
+            <p className="text-dnd-ocean-600 font-medium">
               Explore the complete collection of D&D creatures and monsters
             </p>
           </div>
@@ -109,12 +144,7 @@ export default function HomePage() {
     if (viewMode === 'new') {
       return (
         <div className="max-w-4xl mx-auto">
-          <div className="dnd-card">
-            <h2 className="text-2xl font-fantasy font-bold text-dnd-orange-400 mb-6">
-              New Creature
-            </h2>
-            <CreatureDisplay creature={newCreatureData} />
-          </div>
+          <StatBlock creature={newCreature} />
         </div>
       )
     }
@@ -212,19 +242,8 @@ export default function HomePage() {
       )
     }
 
-    // Home view - show welcome message when no specific section is selected
-    return (
-      <div className="max-w-4xl mx-auto">
-        <div className="dnd-card text-center">
-          <h2 className="text-2xl font-fantasy font-bold text-dnd-orange-400 mb-4">
-            Welcome to D&D Creature Sheet
-          </h2>
-          <p className="text-dnd-parchment-300 text-lg">
-            Select an option above to get started with managing your D&D creatures and monsters.
-          </p>
-        </div>
-      </div>
-    )
+    // Home view - no additional content, just navigation cards
+    return null
   }
 
   return (

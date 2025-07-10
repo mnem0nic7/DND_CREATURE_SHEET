@@ -35,13 +35,13 @@ export const CreatureDisplay: React.FC<CreatureDisplayProps> = ({ creature, onBa
       )}
 
       {/* Main Stat Block */}
-      <div className="stat-block">
+      <div className="classic-stat-block">
         {/* Title */}
-        <div className="border-b-2 border-dnd-orange-600 pb-3 mb-4">
-          <h1 className="text-3xl font-fantasy font-bold text-dnd-orange-400 mb-1">
+        <div className="section-divider border-b pb-3 mb-4">
+          <h1 className="text-2xl font-bold mb-1">
             {creature.name || "New Creature"}
           </h1>
-          <p className="text-dnd-parchment-300 text-sm font-medium">
+          <p className="text-sm italic">
             {creature.size && creature.type 
               ? `${creature.size} ${creature.type}${creature.alignment ? `, ${creature.alignment}` : ''}`
               : "Medium humanoid, neutral"
@@ -50,37 +50,37 @@ export const CreatureDisplay: React.FC<CreatureDisplayProps> = ({ creature, onBa
         </div>
 
         {/* Basic Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          <div className="flex items-center gap-2">
-            <span className="text-dnd-orange-400 font-semibold">Armor Class</span>
-            <span className="text-dnd-parchment-100">{creature.armorClass}</span>
+        <div className="space-y-2 text-sm mb-4">
+          <div className="flex">
+            <span className="stat-name w-32">Armor Class</span>
+            <span className="stat-value">{creature.armorClass}</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-dnd-orange-400 font-semibold">Hit Points</span>
-            <span className="text-dnd-parchment-100">
+          <div className="flex">
+            <span className="stat-name w-32">Hit Points</span>
+            <span className="stat-value">
               {creature.hitPoints} ({creature.hitDice})
             </span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-dnd-orange-400 font-semibold">Speed</span>
-            <span className="text-dnd-parchment-100">
+          <div className="flex">
+            <span className="stat-name w-32">Speed</span>
+            <span className="stat-value">
               {creature.speeds?.length > 0 ? creature.speeds.join(', ') : '30 ft.'}
             </span>
           </div>
         </div>
 
         {/* Ability Scores */}
-        <div className="border-t-2 border-b-2 border-dnd-orange-600/40 py-4 mb-4">
-          <div className="grid grid-cols-6 gap-4 text-center">
+        <div className="section-divider border-t border-b py-4 mb-4">
+          <div className="ability-scores">
             {Object.entries(creature.abilities).map(([ability, score]) => (
-              <div key={ability} className="flex flex-col">
-                <div className="text-dnd-orange-400 font-semibold text-sm uppercase mb-1">
-                  {ability.slice(0, 3)}
+              <div key={ability} className="ability-score">
+                <div className="ability-name">
+                  {ability.slice(0, 3).toUpperCase()}
                 </div>
-                <div className="text-dnd-parchment-100 font-bold text-lg">
+                <div className="ability-value">
                   {score as number}
                 </div>
-                <div className="text-dnd-parchment-300 text-sm">
+                <div className="ability-modifier">
                   ({formatModifier(getModifier(score as number))})
                 </div>
               </div>
@@ -89,76 +89,76 @@ export const CreatureDisplay: React.FC<CreatureDisplayProps> = ({ creature, onBa
         </div>
 
         {/* Additional Stats */}
-        <div className="space-y-2 mb-4">
+        <div className="space-y-2 text-sm mb-4">
           {creature.savingThrows && (
-            <div className="flex gap-2">
-              <span className="text-dnd-orange-400 font-semibold min-w-fit">Saving Throws</span>
-              <span className="text-dnd-parchment-100">{creature.savingThrows}</span>
+            <div className="flex">
+              <span className="stat-name w-36">Saving Throws</span>
+              <span className="stat-value">{creature.savingThrows}</span>
             </div>
           )}
           {creature.skills && (
-            <div className="flex gap-2">
-              <span className="text-dnd-orange-400 font-semibold min-w-fit">Skills</span>
-              <span className="text-dnd-parchment-100">{creature.skills}</span>
+            <div className="flex">
+              <span className="stat-name w-36">Skills</span>
+              <span className="stat-value">{creature.skills}</span>
             </div>
           )}
           {creature.vulnerabilities && (
-            <div className="flex gap-2">
-              <span className="text-dnd-orange-400 font-semibold min-w-fit">Damage Vulnerabilities</span>
-              <span className="text-dnd-parchment-100">{creature.vulnerabilities}</span>
+            <div className="flex">
+              <span className="stat-name w-36">Damage Vulnerabilities</span>
+              <span className="stat-value">{creature.vulnerabilities}</span>
             </div>
           )}
           {creature.resistances && (
-            <div className="flex gap-2">
-              <span className="text-dnd-orange-400 font-semibold min-w-fit">Damage Resistances</span>
-              <span className="text-dnd-parchment-100">{creature.resistances}</span>
+            <div className="flex">
+              <span className="stat-name w-36">Damage Resistances</span>
+              <span className="stat-value">{creature.resistances}</span>
             </div>
           )}
           {creature.immunities && (
-            <div className="flex gap-2">
-              <span className="text-dnd-orange-400 font-semibold min-w-fit">Damage Immunities</span>
-              <span className="text-dnd-parchment-100">{creature.immunities}</span>
+            <div className="flex">
+              <span className="stat-name w-36">Damage Immunities</span>
+              <span className="stat-value">{creature.immunities}</span>
             </div>
           )}
           {creature.conditionImmunities && (
-            <div className="flex gap-2">
-              <span className="text-dnd-orange-400 font-semibold min-w-fit">Condition Immunities</span>
-              <span className="text-dnd-parchment-100">{creature.conditionImmunities}</span>
+            <div className="flex">
+              <span className="stat-name w-36">Condition Immunities</span>
+              <span className="stat-value">{creature.conditionImmunities}</span>
             </div>
           )}
-          <div className="flex gap-2">
-            <span className="text-dnd-orange-400 font-semibold min-w-fit">Senses</span>
-            <span className="text-dnd-parchment-100">{creature.senses}</span>
+          <div className="flex">
+            <span className="stat-name w-36">Senses</span>
+            <span className="stat-value">{creature.senses}</span>
           </div>
-          <div className="flex gap-2">
-            <span className="text-dnd-orange-400 font-semibold min-w-fit">Languages</span>
-            <span className="text-dnd-parchment-100">{creature.languages}</span>
+          <div className="flex">
+            <span className="stat-name w-36">Languages</span>
+            <span className="stat-value">{creature.languages}</span>
           </div>
-          <div className="flex gap-2">
-            <span className="text-dnd-orange-400 font-semibold min-w-fit">Challenge</span>
-            <span className="text-dnd-parchment-100">{creature.challenge}</span>
+          <div className="flex">
+            <span className="stat-name w-36">Challenge</span>
+            <span className="stat-value">{creature.challenge}</span>
           </div>
-          <div className="flex gap-2">
-            <span className="text-dnd-orange-400 font-semibold min-w-fit">Proficiency Bonus</span>
-            <span className="text-dnd-parchment-100">{creature.proficiencyBonus}</span>
+          <div className="flex">
+            <span className="stat-name w-36">Proficiency Bonus</span>
+            <span className="stat-value">{creature.proficiencyBonus}</span>
           </div>
         </div>
 
         {/* Special Abilities */}
         {creature.specialAbilities && creature.specialAbilities.length > 0 && (
-          <div className="border-t-2 border-dnd-orange-600/40 pt-4 mb-4">
-            <h3 className="text-xl font-fantasy font-bold text-dnd-orange-400 mb-3">
+          <div className="section-divider border-t pt-4 mb-4">
+            <h3 className="text-lg font-bold mb-3">
               Special Abilities
             </h3>
-            <div className="space-y-3">
+            <div className="space-y-3 text-sm">
               {creature.specialAbilities.map((ability: any, index: number) => (
                 <div key={index}>
-                  <h4 className="text-dnd-orange-300 font-semibold mb-1">
-                    {ability.name}
-                  </h4>
-                  <p className="text-dnd-parchment-200 text-sm">
+                  <span className="stat-name">
+                    {ability.name}.
+                  </span>{' '}
+                  <span className="stat-value">
                     {ability.description}
-                  </p>
+                  </span>
                 </div>
               ))}
             </div>
@@ -166,25 +166,25 @@ export const CreatureDisplay: React.FC<CreatureDisplayProps> = ({ creature, onBa
         )}
 
         {/* Actions */}
-        <div className="border-t-2 border-dnd-orange-600/40 pt-4 mb-4">
-          <h3 className="text-xl font-fantasy font-bold text-dnd-orange-400 mb-3">
+        <div className="section-divider border-t pt-4 mb-4">
+          <h3 className="text-lg font-bold mb-3">
             Actions
           </h3>
           {creature.actions && creature.actions.length > 0 ? (
-            <div className="space-y-3">
+            <div className="space-y-3 text-sm">
               {creature.actions.map((action: any, index: number) => (
                 <div key={index}>
-                  <h4 className="text-dnd-orange-300 font-semibold mb-1">
-                    {action.name}
-                  </h4>
-                  <p className="text-dnd-parchment-200 text-sm">
+                  <span className="stat-name">
+                    {action.name}.
+                  </span>{' '}
+                  <span className="stat-value">
                     {action.description}
-                  </p>
+                  </span>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="text-dnd-parchment-300 text-sm italic">
+            <div className="text-sm italic">
               No actions defined. Click "Edit Creature" to add actions.
             </div>
           )}
@@ -192,19 +192,19 @@ export const CreatureDisplay: React.FC<CreatureDisplayProps> = ({ creature, onBa
 
         {/* Legendary Actions */}
         {creature.legendaryActions && creature.legendaryActions.length > 0 && (
-          <div className="border-t-2 border-dnd-orange-600/40 pt-4">
-            <h3 className="text-xl font-fantasy font-bold text-dnd-orange-400 mb-3">
+          <div className="section-divider border-t pt-4">
+            <h3 className="text-lg font-bold mb-3">
               Legendary Actions
             </h3>
-            <div className="space-y-3">
+            <div className="space-y-3 text-sm">
               {creature.legendaryActions.map((action: any, index: number) => (
                 <div key={index}>
-                  <h4 className="text-dnd-orange-300 font-semibold mb-1">
-                    {action.name}
-                  </h4>
-                  <p className="text-dnd-parchment-200 text-sm">
+                  <span className="stat-name">
+                    {action.name}.
+                  </span>{' '}
+                  <span className="stat-value">
                     {action.description}
-                  </p>
+                  </span>
                 </div>
               ))}
             </div>

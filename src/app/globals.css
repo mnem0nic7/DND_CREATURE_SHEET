@@ -408,7 +408,10 @@
   }
   
   .classic-stat-block .ability-scores {
-    @apply grid grid-cols-6 gap-2 text-center;
+    @apply grid text-center mx-auto;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0.5rem;
+    width: 50%;
   }
   
   .classic-stat-block .ability-score {

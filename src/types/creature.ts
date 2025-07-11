@@ -1,6 +1,32 @@
 export interface SpeedEntry {
   type: string
-  distance: string
+  distance: number
+}
+
+export interface SenseEntry {
+  type: string
+  range: number
+  isCalculated: boolean
+}
+
+export interface SavingThrowEntry {
+  ability: string
+  proficient: boolean
+  expertise: boolean
+  override: boolean
+  overrideValue?: number
+}
+
+export interface SkillEntry {
+  skill: string
+  proficient: boolean
+  expertise: boolean
+  override: boolean
+  overrideValue?: number
+}
+
+export interface LanguageEntry {
+  language: string
 }
 
 export interface Creature {
@@ -28,13 +54,18 @@ export interface Creature {
   int: number
   wis: number
   cha: number
-  savingThrows?: string[]
-  skills?: string[]
+  savingThrows?: string[] // Legacy format for compatibility
+  savingThrowEntries?: SavingThrowEntry[] // New structured format
+  skills?: string[] // Legacy format for compatibility
+  skillEntries?: SkillEntry[] // New structured format
   damageResistances?: string[]
   damageImmunities?: string[]
   conditionImmunities?: string[]
-  senses?: string[]
-  languages?: string[]
+  senses?: string[] // Legacy format for compatibility
+  senseEntries?: SenseEntry[] // New structured format
+  sensesExplainer?: string // Optional explainer for senses
+  languages?: string[] // Legacy format for compatibility
+  languageEntries?: LanguageEntry[] // New structured format
   specialAbilities?: SpecialAbility[]
   actions?: Action[]
   legendaryActions?: LegendaryAction[]

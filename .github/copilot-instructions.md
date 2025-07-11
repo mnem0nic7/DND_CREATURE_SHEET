@@ -71,7 +71,22 @@ The application uses a 5-section stat block layout with triangular dividers:
 ### Section 4: Additional Information
 - **View Mode**: Shows saving throws, skills, senses, languages, challenge rating
 - **Edit Mode**: 
-  - Text inputs for stats fields (saving throws, skills, senses, languages, challenge rating)
+  - **Saving Throws**: Advanced management with proficiency/expertise toggles, auto-calculation, and "Clear All" functionality
+  - **Skills**: Comprehensive skill system with proficiency/expertise, calculation based on ability scores, and "Clear All" option
+  - **Senses**: Multiple sense types (Blindsight, Darkvision, etc.) with range inputs, custom sense support, and "Clear All" functionality
+  - **Languages**: Language dropdown with "None" option, custom language support, duplicate prevention, and "Clear All" option
+  - **Challenge Rating**: Text input for CR value (⚠️ **PRIORITY**: Complete CR calculation system after other sections are implemented)
+
+## 🚨 IMPORTANT DEVELOPMENT REMINDER
+**CHALLENGE RATING (CR) SYSTEM COMPLETION REQUIRED**
+After completing work on other stat block sections, the Challenge Rating calculation and validation system must be implemented. This includes:
+- Automatic CR calculation based on creature stats (AC, HP, damage output, save DCs)
+- CR validation and suggestions
+- Experience point (XP) calculation based on CR
+- Proficiency bonus calculation based on CR
+- CR-appropriate stat recommendations
+
+This is a critical missing piece that should be prioritized once the current stat management systems are fully stable.
 
 ### Section 5: Actions
 - **View Mode**: Shows creature actions in classic format
@@ -206,6 +221,16 @@ dnd-aqua: Bright blue highlights and borders
 - AC/HP auto-calculation with override toggles
 - Input validation with error display
 - Auto-save on edit mode exit
+- **Advanced Saving Throws System**: Proficiency/expertise toggles, auto-calculation, override options
+- **Comprehensive Skills Management**: All 18 D&D skills with proficiency/expertise and ability-based calculation
+- **Sophisticated Senses System**: Multiple sense types, custom senses, range inputs, passive perception auto-calculation
+- **Complete Language System**: Dropdown with "None" option, custom languages, duplicate prevention
+- **"Clear All" Functionality**: Quick clear options for saving throws, skills, senses, and languages
+- **Duplicate Prevention**: Smart validation for language entries with user-friendly error messages
+- **Custom Type Support**: Ability to add custom speed types, sense types, and languages beyond D&D standards
+
+🚧 **Priority Next Steps**:
+- **Challenge Rating (CR) System**: Complete implementation of CR calculation, validation, and XP determination
 
 ❌ **Not Implemented**:
 - Existing creatures management (viewing/editing previously saved creatures)

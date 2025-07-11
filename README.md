@@ -1,15 +1,24 @@
 # D&D Creature Sheet
 
-A modern, responsive D&D Monster Sheet application built with Next.js 15, TypeScript, and Tailwind CSS.
+A modern, responsive D&D Monster Sheet application built with Next.js 15, TypeScript, and Tailwind CSS featuring a comprehensive editable stat block system.
 
 ## Features
 
-- 🐉 **Modern UI**: Clean, fantasy-themed interface with D&D-inspired design
-- 🔍 **Search & Filter**: Find creatures by name, type, challenge rating, and size
-- 📊 **Detailed Stat Blocks**: Complete D&D 5e creature statistics
+- 🐉 **Modern UI**: Clean, beach-themed interface with classic D&D stat block styling
+- ✏️ **Editable Stat Blocks**: Full 5-section editable stat blocks with real-time validation
+- 🔍 **Advanced Management**: Sophisticated systems for speeds, senses, skills, saving throws, and languages
+- 🎯 **Auto-Calculation**: Intelligent AC/HP calculation with override options and D&D 5e rules compliance
+- 🗑️ **Clear All Options**: Quick clear functionality for all major stat sections (saving throws, skills, senses, languages)
+- 🌐 **"None" Language Support**: Proper handling of creatures with no languages
+- � **Duplicate Prevention**: Smart validation prevents duplicate language entries with helpful error messages
+- ⚙️ **Comprehensive Armor System**: Full D&D 5e armor types, subtypes, magical bonuses, shields, and Mage Armor support
+- �📊 **Detailed Stat Blocks**: Complete D&D 5e creature statistics with triangular dividers
 - 📱 **Responsive Design**: Works seamlessly on desktop, tablet, and mobile
 - ⚡ **Fast Development**: Built with Turbopack for lightning-fast builds
-- 🎨 **Custom Styling**: Tailwind CSS with custom D&D theme colors
+- 🎨 **Beach Theme**: Custom beach-inspired color palette with ocean waves and sparkle effects
+- 💾 **Local Storage**: Automatic persistence of creature data with state restoration
+- 🎛️ **Custom Input Support**: Add custom speed types, sense types, and languages beyond standard D&D options
+- ⌨️ **Keyboard Shortcuts**: Enter to save, Escape to cancel in edit mode
 
 ## Tech Stack
 
@@ -100,14 +109,23 @@ The application uses custom D&D-themed colors and components:
 
 ## Roadmap
 
-- [ ] Add creature creation/editing forms
-- [ ] Implement local storage for saved creatures
+- [x] ✅ Add creature creation/editing forms
+- [x] ✅ Implement local storage for saved creatures
+- [x] ✅ Add comprehensive stat block editing system
+- [x] ✅ Implement AC/HP auto-calculation with overrides
+- [x] ✅ Add advanced speed, senses, skills, and language management
+- [x] ✅ Add "Clear All" functionality for major sections
+- [x] ✅ Add duplicate prevention and validation
+- [x] ✅ Support custom types beyond standard D&D options
+- [ ] 🚧 **Complete Challenge Rating (CR) calculation and validation system**
 - [ ] Add import/export functionality
 - [ ] Create detailed creature view modal
 - [ ] Add dice rolling functionality
 - [ ] Implement user authentication
 - [ ] Add database integration
 - [ ] Create combat encounter builder
+- [ ] Add creature template system
+- [ ] Implement spell management for spellcaster creatures
 
 ## Contributing
 

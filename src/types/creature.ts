@@ -68,7 +68,9 @@ export interface Creature {
   languageEntries?: LanguageEntry[] // New structured format
   specialAbilities?: SpecialAbility[]
   actions?: Action[]
+  bonusActions?: Action[]
   legendaryActions?: LegendaryAction[]
+  mythicActions?: Action[]
 }
 
 export interface SpecialAbility {

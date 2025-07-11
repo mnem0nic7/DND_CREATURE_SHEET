@@ -1,4 +1,5 @@
 import { Creature, SpeedEntry, SavingThrowEntry, SkillEntry, SenseEntry, LanguageEntry } from '@/types/creature'
+import { TraitTemplate } from '@/data/traits'
 import { useState, useEffect, useRef } from 'react'
 import { Plus, Trash2, X } from 'lucide-react'
 import { 
@@ -12,6 +13,16 @@ import {
   LANGUAGES,
   SAVING_THROWS,
   SKILLS,
+  ACTION_TYPES,
+  ACTION_TEMPLATES,
+  TRAIT_CATEGORIES,
+  TRAIT_TEMPLATES,
+  getTraitsByCategory,
+  searchTraits,
+  generateDynamicDescription,
+  applyTraitEffects,
+  getRequiredInputs,
+  validateTraitInputs,
   getAbilityModifier,
   formatModifier,
   calculateAC,
@@ -67,6 +78,15 @@ export function StatBlock({ creature }: StatBlockProps) {
 
   const [creatureData, setCreatureData] = useState<Creature>(creature)
   const [errors, setErrors] = useState<ErrorState>({})
+
+  // Trait selection state
+  const [traitSelectionStep, setTraitSelectionStep] = useState<'category' | 'trait' | 'search' | 'inputs' | null>(null)
+  const [selectedTraitCategory, setSelectedTraitCategory] = useState<string>('')
+  const [selectedTraitKey, setSelectedTraitKey] = useState<string>('')
+  const [traitUserInputs, setTraitUserInputs] = useState<Record<string, any>>({})
+  const [traitSearchQuery, setTraitSearchQuery] = useState<string>('')
+  const [traitSearchResults, setTraitSearchResults] = useState<TraitTemplate[]>([])
+
   const [overrideAC, setOverrideAC] = useState(false)
   const [overrideHP, setOverrideHP] = useState(false)
   const [showCustomType, setShowCustomType] = useState(false)
@@ -350,10 +370,11 @@ export function StatBlock({ creature }: StatBlockProps) {
     }
   }
 
-  const addAction = () => {
+  const addAction = (actionType: keyof typeof ACTION_TEMPLATES = 'Custom Action') => {
+    const template = ACTION_TEMPLATES[actionType]
     const newAction = {
-      name: 'New Action',
-      description: 'Description of the action.'
+      name: template.name,
+      description: template.description
     }
     setCreatureData(prev => ({
       ...prev,
@@ -779,6 +800,255 @@ export function StatBlock({ creature }: StatBlockProps) {
   useEffect(() => {
     setLanguagesInitialized(true)
   }, [])
+
+  // Special Ability management functions
+  const addSpecialAbility = (type: string) => {
+    if (type === 'category') {
+      setTraitSelectionStep('category')
+      return
+    }
+    
+    if (type === 'search') {
+      setTraitSelectionStep('search')
+      setTraitSearchQuery('')
+      setTraitSearchResults([])
+      return
+    }
+    
+    if (type === 'custom') {
+      const newAbility = {
+        name: 'New Trait',
+        description: 'Description of the trait.'
+      }
+      setCreatureData(prev => ({
+        ...prev,
+        specialAbilities: [...(prev.specialAbilities || []), newAbility]
+      }))
+    } else if (TRAIT_TEMPLATES[type]) {
+      // Check if trait requires inputs
+      const template = TRAIT_TEMPLATES[type]
+      const requiredInputs = getRequiredInputs(template)
+      
+      if (requiredInputs.length > 0) {
+        // Set up for input collection
+        setSelectedTraitKey(type)
+        setTraitUserInputs({})
+        setTraitSelectionStep('inputs')
+        return
+      }
+      
+      // Add trait directly if no inputs required
+      const newAbility = {
+        name: template.name,
+        description: template.description
+      }
+      setCreatureData(prev => ({
+        ...prev,
+        specialAbilities: [...(prev.specialAbilities || []), newAbility]
+      }))
+    }
+    
+    // Reset trait selection
+    setTraitSelectionStep(null)
+    setSelectedTraitCategory('')
+    setSelectedTraitKey('')
+    setTraitUserInputs({})
+    setTraitSearchQuery('')
+    setTraitSearchResults([])
+  }
+
+  const selectTraitCategory = (category: string) => {
+    setSelectedTraitCategory(category)
+    setTraitSelectionStep('trait')
+  }
+
+  const performTraitSearch = (query: string) => {
+    setTraitSearchQuery(query)
+    if (query.trim() === '') {
+      setTraitSearchResults([])
+      return
+    }
+    
+    const results = searchTraits(query.trim())
+    setTraitSearchResults(results)
+  }
+
+  const selectTrait = (traitKey: string) => {
+    const template = TRAIT_TEMPLATES[traitKey]
+    if (!template) return
+    
+    const requiredInputs = getRequiredInputs(template)
+    
+    if (requiredInputs.length > 0) {
+      setSelectedTraitKey(traitKey)
+      setTraitUserInputs({})
+      setTraitSelectionStep('inputs')
+    } else {
+      // Add trait directly
+      const newAbility = {
+        name: template.name,
+        description: template.description
+      }
+      setCreatureData(prev => ({
+        ...prev,
+        specialAbilities: [...(prev.specialAbilities || []), newAbility]
+      }))
+      
+      // Reset selection
+      cancelTraitSelection()
+    }
+  }
+
+  const updateTraitInput = (inputKey: string, value: any) => {
+    setTraitUserInputs(prev => ({
+      ...prev,
+      [inputKey]: value
+    }))
+  }
+
+  const completeTrait = () => {
+    const template = TRAIT_TEMPLATES[selectedTraitKey]
+    if (!template) return
+
+    // Validate inputs
+    const validation = validateTraitInputs(template, traitUserInputs)
+    if (!validation.isValid) {
+      // Could show errors here in a real implementation
+      console.log('Validation errors:', validation.errors)
+      return
+    }
+
+    // Generate dynamic description
+    const finalDescription = generateDynamicDescription(template, traitUserInputs)
+    
+    // Create the trait
+    const newAbility = {
+      name: template.name,
+      description: finalDescription
+    }
+
+    // Apply trait effects to creature data
+    const updatedCreatureData = applyTraitEffects(creatureData, template, traitUserInputs)
+    
+    // Add the trait and apply effects
+    setCreatureData(prev => ({
+      ...updatedCreatureData,
+      specialAbilities: [...(prev.specialAbilities || []), newAbility]
+    }))
+
+    // Reset selection
+    cancelTraitSelection()
+  }
+
+  const cancelTraitSelection = () => {
+    setTraitSelectionStep(null)
+    setSelectedTraitCategory('')
+    setSelectedTraitKey('')
+    setTraitUserInputs({})
+    setTraitSearchQuery('')
+    setTraitSearchResults([])
+  }
+
+  const removeSpecialAbility = (index: number) => {
+    setCreatureData(prev => ({
+      ...prev,
+      specialAbilities: prev.specialAbilities?.filter((_, i) => i !== index) || []
+    }))
+  }
+
+  const updateSpecialAbility = (index: number, field: 'name' | 'description', value: string) => {
+    setCreatureData(prev => ({
+      ...prev,
+      specialAbilities: prev.specialAbilities?.map((ability, i) => 
+        i === index ? { ...ability, [field]: value } : ability
+      ) || []
+    }))
+  }
+
+  // Bonus Action management functions
+  const addBonusAction = (type: string) => {
+    const newAction = {
+      name: 'New Bonus Action',
+      description: 'Description of the bonus action.'
+    }
+    setCreatureData(prev => ({
+      ...prev,
+      bonusActions: [...(prev.bonusActions || []), newAction]
+    }))
+  }
+
+  const removeBonusAction = (index: number) => {
+    setCreatureData(prev => ({
+      ...prev,
+      bonusActions: prev.bonusActions?.filter((_, i) => i !== index) || []
+    }))
+  }
+
+  const updateBonusAction = (index: number, field: 'name' | 'description', value: string) => {
+    setCreatureData(prev => ({
+      ...prev,
+      bonusActions: prev.bonusActions?.map((action, i) => 
+        i === index ? { ...action, [field]: value } : action
+      ) || []
+    }))
+  }
+
+  // Legendary Action management functions
+  const addLegendaryAction = (type: string) => {
+    const newAction = {
+      name: 'New Legendary Action',
+      description: 'Description of the legendary action.',
+      cost: 1
+    }
+    setCreatureData(prev => ({
+      ...prev,
+      legendaryActions: [...(prev.legendaryActions || []), newAction]
+    }))
+  }
+
+  const removeLegendaryAction = (index: number) => {
+    setCreatureData(prev => ({
+      ...prev,
+      legendaryActions: prev.legendaryActions?.filter((_, i) => i !== index) || []
+    }))
+  }
+
+  const updateLegendaryAction = (index: number, field: 'name' | 'description', value: string) => {
+    setCreatureData(prev => ({
+      ...prev,
+      legendaryActions: prev.legendaryActions?.map((action, i) => 
+        i === index ? { ...action, [field]: value } : action
+      ) || []
+    }))
+  }
+
+  // Mythic Action management functions
+  const addMythicAction = (type: string) => {
+    const newAction = {
+      name: 'New Mythic Action',
+      description: 'Description of the mythic action.'
+    }
+    setCreatureData(prev => ({
+      ...prev,
+      mythicActions: [...(prev.mythicActions || []), newAction]
+    }))
+  }
+
+  const removeMythicAction = (index: number) => {
+    setCreatureData(prev => ({
+      ...prev,
+      mythicActions: prev.mythicActions?.filter((_, i) => i !== index) || []
+    }))
+  }
+
+  const updateMythicAction = (index: number, field: 'name' | 'description', value: string) => {
+    setCreatureData(prev => ({
+      ...prev,
+      mythicActions: prev.mythicActions?.map((action, i) => 
+        i === index ? { ...action, [field]: value } : action
+      ) || []
+    }))
+  }
 
   return (
     <div className="classic-stat-block">
@@ -2079,90 +2349,659 @@ export function StatBlock({ creature }: StatBlockProps) {
       {/* Divider */}
       <div className="section-divider"></div>
 
-      {/* Section 5: Actions */}
+      {/* Section 5: Traits & Actions */}
       <div className="py-4 relative">
         <div 
           ref={sectionRefs.section5}
           onClick={(e) => handleSectionClick('section5', e)}
           onKeyDown={(e) => handleKeyDown(e, 'section5')}
           className={`cursor-pointer ${!editMode.section5 ? 'hover:bg-gray-50 rounded p-2 -m-2' : ''}`}
-          title={editMode.section5 ? 'Press Enter to save or Escape to cancel' : 'Click to edit actions'}
+          title={editMode.section5 ? 'Press Enter to save or Escape to cancel' : 'Click to edit traits & actions'}
         >
           {editMode.section5 ? (
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-lg font-bold">Actions</h3>
-                <button
-                  onClick={addAction}
-                  className="flex items-center gap-1 text-red-600 hover:text-red-800 text-sm"
-                >
-                  <Plus size={14} />
-                  Add Action
-                </button>
-              </div>
-              
-              <div className="space-y-3">
-                {creatureData.actions?.map((action, index) => (
-                  <div key={index} className="border border-gray-300 rounded p-2 relative">
-                    <button
-                      onClick={() => removeAction(index)}
-                      className="absolute top-1 right-1 text-red-600 hover:text-red-800"
-                    >
-                      <Trash2 size={12} />
-                    </button>
-                    
-                    <div className="space-y-2 pr-6">
-                      <input
-                        ref={index === 0 ? firstInputRefs.section5 : undefined}
-                        type="text"
-                        value={action.name}
-                        onChange={(e) => updateAction(index, 'name', e.target.value)}
-                        className="w-full bg-transparent border-b border-red-600 focus:border-red-800 outline-none font-bold"
-                        placeholder="Action Name"
-                      />
-                      <textarea
-                        value={action.description}
-                        onChange={(e) => updateAction(index, 'description', e.target.value)}
-                        className="w-full bg-transparent border border-red-600 focus:border-red-800 outline-none p-1 resize-none text-sm"
-                        rows={2}
-                        placeholder="Action description..."
-                      />
-                    </div>
+            <div className="space-y-6">
+              {/* Traits Section */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-lg font-bold">Traits</h3>
+                  <div className="flex items-center gap-2">
+                    {traitSelectionStep === null && (
+                      <select 
+                        className="bg-transparent border-b border-red-600 focus:border-red-800 outline-none text-sm"
+                        onChange={(e) => addSpecialAbility(e.target.value)}
+                        value=""
+                      >
+                        <option value="">Add Trait...</option>
+                        <option value="category">Browse by Category</option>
+                        <option value="search">Search Traits</option>
+                        <option value="custom">Custom Trait</option>
+                      </select>
+                    )}
                   </div>
-                )) || []}
+                </div>
+                
+                <div className="space-y-3">
+                  {creatureData.specialAbilities?.map((ability, index) => (
+                    <div key={index} className="border border-gray-300 rounded p-2 relative">
+                      <button
+                        onClick={() => removeSpecialAbility(index)}
+                        className="absolute top-1 right-1 text-red-600 hover:text-red-800"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                      
+                      <div className="space-y-2 pr-6">
+                        <input
+                          type="text"
+                          value={ability.name}
+                          onChange={(e) => updateSpecialAbility(index, 'name', e.target.value)}
+                          className="w-full bg-transparent border-b border-red-600 focus:border-red-800 outline-none font-bold"
+                          placeholder="Trait Name"
+                        />
+                        <textarea
+                          value={ability.description}
+                          onChange={(e) => updateSpecialAbility(index, 'description', e.target.value)}
+                          className="w-full bg-transparent border border-red-600 focus:border-red-800 outline-none p-1 resize-none text-sm"
+                          rows={2}
+                          placeholder="Trait description..."
+                        />
+                      </div>
+                    </div>
+                  )) || []}
+                  
+                  {(creatureData.specialAbilities || []).length > 0 && (
+                    <button
+                      onClick={() => setCreatureData(prev => ({ ...prev, specialAbilities: [] }))}
+                      className="text-red-600 hover:text-red-800 text-sm hover:underline"
+                    >
+                      Clear All Traits
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Actions Section */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-lg font-bold">Actions</h3>
+                  <div className="flex items-center gap-2">
+                    <select 
+                      className="bg-transparent border-b border-red-600 focus:border-red-800 outline-none text-sm"
+                      onChange={(e) => addAction(e.target.value as keyof typeof ACTION_TEMPLATES)}
+                      value=""
+                    >
+                      <option value="">Add Action...</option>
+                      {ACTION_TYPES.map(type => (
+                        <option key={type} value={type}>{type}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  {creatureData.actions?.map((action, index) => (
+                    <div key={index} className="border border-gray-300 rounded p-2 relative">
+                      <button
+                        onClick={() => removeAction(index)}
+                        className="absolute top-1 right-1 text-red-600 hover:text-red-800"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                      
+                      <div className="space-y-2 pr-6">
+                        <input
+                          ref={index === 0 ? firstInputRefs.section5 : undefined}
+                          type="text"
+                          value={action.name}
+                          onChange={(e) => updateAction(index, 'name', e.target.value)}
+                          className="w-full bg-transparent border-b border-red-600 focus:border-red-800 outline-none font-bold"
+                          placeholder="Action Name"
+                        />
+                        <textarea
+                          value={action.description}
+                          onChange={(e) => updateAction(index, 'description', e.target.value)}
+                          className="w-full bg-transparent border border-red-600 focus:border-red-800 outline-none p-1 resize-none text-sm"
+                          rows={2}
+                          placeholder="Action description..."
+                        />
+                      </div>
+                    </div>
+                  )) || []}
+                  
+                  {(creatureData.actions || []).length > 0 && (
+                    <button
+                      onClick={() => setCreatureData(prev => ({ ...prev, actions: [] }))}
+                      className="text-red-600 hover:text-red-800 text-sm hover:underline"
+                    >
+                      Clear All Actions
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Bonus Actions Section */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-lg font-bold">Bonus Actions</h3>
+                  <div className="flex items-center gap-2">
+                    <select 
+                      className="bg-transparent border-b border-red-600 focus:border-red-800 outline-none text-sm"
+                      onChange={(e) => addBonusAction(e.target.value)}
+                      value=""
+                    >
+                      <option value="">Add Bonus Action...</option>
+                      <option value="custom">Custom Bonus Action</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  {creatureData.bonusActions?.map((action, index) => (
+                    <div key={index} className="border border-gray-300 rounded p-2 relative">
+                      <button
+                        onClick={() => removeBonusAction(index)}
+                        className="absolute top-1 right-1 text-red-600 hover:text-red-800"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                      
+                      <div className="space-y-2 pr-6">
+                        <input
+                          type="text"
+                          value={action.name}
+                          onChange={(e) => updateBonusAction(index, 'name', e.target.value)}
+                          className="w-full bg-transparent border-b border-red-600 focus:border-red-800 outline-none font-bold"
+                          placeholder="Bonus Action Name"
+                        />
+                        <textarea
+                          value={action.description}
+                          onChange={(e) => updateBonusAction(index, 'description', e.target.value)}
+                          className="w-full bg-transparent border border-red-600 focus:border-red-800 outline-none p-1 resize-none text-sm"
+                          rows={2}
+                          placeholder="Bonus action description..."
+                        />
+                      </div>
+                    </div>
+                  )) || []}
+                  
+                  {(creatureData.bonusActions || []).length > 0 && (
+                    <button
+                      onClick={() => setCreatureData(prev => ({ ...prev, bonusActions: [] }))}
+                      className="text-red-600 hover:text-red-800 text-sm hover:underline"
+                    >
+                      Clear All Bonus Actions
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Legendary Actions Section */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-lg font-bold">Legendary Actions</h3>
+                  <div className="flex items-center gap-2">
+                    <select 
+                      className="bg-transparent border-b border-red-600 focus:border-red-800 outline-none text-sm"
+                      onChange={(e) => addLegendaryAction(e.target.value)}
+                      value=""
+                    >
+                      <option value="">Add Legendary Action...</option>
+                      <option value="custom">Custom Legendary Action</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  {creatureData.legendaryActions?.map((action, index) => (
+                    <div key={index} className="border border-gray-300 rounded p-2 relative">
+                      <button
+                        onClick={() => removeLegendaryAction(index)}
+                        className="absolute top-1 right-1 text-red-600 hover:text-red-800"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                      
+                      <div className="space-y-2 pr-6">
+                        <input
+                          type="text"
+                          value={action.name}
+                          onChange={(e) => updateLegendaryAction(index, 'name', e.target.value)}
+                          className="w-full bg-transparent border-b border-red-600 focus:border-red-800 outline-none font-bold"
+                          placeholder="Legendary Action Name"
+                        />
+                        <textarea
+                          value={action.description}
+                          onChange={(e) => updateLegendaryAction(index, 'description', e.target.value)}
+                          className="w-full bg-transparent border border-red-600 focus:border-red-800 outline-none p-1 resize-none text-sm"
+                          rows={2}
+                          placeholder="Legendary action description..."
+                        />
+                      </div>
+                    </div>
+                  )) || []}
+                  
+                  {(creatureData.legendaryActions || []).length > 0 && (
+                    <button
+                      onClick={() => setCreatureData(prev => ({ ...prev, legendaryActions: [] }))}
+                      className="text-red-600 hover:text-red-800 text-sm hover:underline"
+                    >
+                      Clear All Legendary Actions
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Mythic Actions Section */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-lg font-bold">Mythic Actions</h3>
+                  <div className="flex items-center gap-2">
+                    <select 
+                      className="bg-transparent border-b border-red-600 focus:border-red-800 outline-none text-sm"
+                      onChange={(e) => addMythicAction(e.target.value)}
+                      value=""
+                    >
+                      <option value="">Add Mythic Action...</option>
+                      <option value="custom">Custom Mythic Action</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  {creatureData.mythicActions?.map((action, index) => (
+                    <div key={index} className="border border-gray-300 rounded p-2 relative">
+                      <button
+                        onClick={() => removeMythicAction(index)}
+                        className="absolute top-1 right-1 text-red-600 hover:text-red-800"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                      
+                      <div className="space-y-2 pr-6">
+                        <input
+                          type="text"
+                          value={action.name}
+                          onChange={(e) => updateMythicAction(index, 'name', e.target.value)}
+                          className="w-full bg-transparent border-b border-red-600 focus:border-red-800 outline-none font-bold"
+                          placeholder="Mythic Action Name"
+                        />
+                        <textarea
+                          value={action.description}
+                          onChange={(e) => updateMythicAction(index, 'description', e.target.value)}
+                          className="w-full bg-transparent border border-red-600 focus:border-red-800 outline-none p-1 resize-none text-sm"
+                          rows={2}
+                          placeholder="Mythic action description..."
+                        />
+                      </div>
+                    </div>
+                  )) || []}
+                  
+                  {(creatureData.mythicActions || []).length > 0 && (
+                    <button
+                      onClick={() => setCreatureData(prev => ({ ...prev, mythicActions: [] }))}
+                      className="text-red-600 hover:text-red-800 text-sm hover:underline"
+                    >
+                      Clear All Mythic Actions
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           ) : (
-            <div>
-              {/* View Mode Actions */}
-              <div>
-                <h3 className="text-lg font-bold mb-3">Actions</h3>
-                {creatureData.actions && creatureData.actions.length > 0 ? (
+            <div className="space-y-4">
+              {/* View Mode - Traits */}
+              {creatureData.specialAbilities && creatureData.specialAbilities.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-bold mb-3">Traits</h3>
+                  <div className="space-y-3 text-sm">
+                    {creatureData.specialAbilities.map((ability, index) => (
+                      <div key={index}>
+                        <span className="stat-name">{ability.name}.</span>{' '}
+                        <span className="stat-value">{ability.description}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* View Mode - Actions */}
+              {creatureData.actions && creatureData.actions.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-bold mb-3">Actions</h3>
                   <div className="space-y-3 text-sm">
                     {creatureData.actions.map((action, index) => (
                       <div key={index}>
                         <span className="stat-name">{action.name}.</span>{' '}
                         <span className="stat-value">{action.description}</span>
-                        {action.attackBonus && (
-                          <span className="stat-value"> +{action.attackBonus} to hit</span>
-                        )}
-                        {action.damage && (
-                          <span className="stat-value">, {action.damage} damage</span>
-                        )}
-                        {action.range && (
-                          <span className="stat-value">, range {action.range}</span>
-                        )}
                       </div>
                     ))}
                   </div>
-                ) : (
-                  <div className="text-gray-500 italic text-sm">No actions defined</div>
-                )}
-              </div>
+                </div>
+              )}
+
+              {/* View Mode - Bonus Actions */}
+              {creatureData.bonusActions && creatureData.bonusActions.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-bold mb-3">Bonus Actions</h3>
+                  <div className="space-y-3 text-sm">
+                    {creatureData.bonusActions.map((action, index) => (
+                      <div key={index}>
+                        <span className="stat-name">{action.name}.</span>{' '}
+                        <span className="stat-value">{action.description}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* View Mode - Legendary Actions */}
+              {creatureData.legendaryActions && creatureData.legendaryActions.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-bold mb-3">Legendary Actions</h3>
+                  <div className="space-y-3 text-sm">
+                    {creatureData.legendaryActions.map((action, index) => (
+                      <div key={index}>
+                        <span className="stat-name">{action.name}.</span>{' '}
+                        <span className="stat-value">{action.description}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* View Mode - Mythic Actions */}
+              {creatureData.mythicActions && creatureData.mythicActions.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-bold mb-3">Mythic Actions</h3>
+                  <div className="space-y-3 text-sm">
+                    {creatureData.mythicActions.map((action, index) => (
+                      <div key={index}>
+                        <span className="stat-name">{action.name}.</span>{' '}
+                        <span className="stat-value">{action.description}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Empty state */}
+              {(!creatureData.specialAbilities || creatureData.specialAbilities.length === 0) &&
+               (!creatureData.actions || creatureData.actions.length === 0) &&
+               (!creatureData.bonusActions || creatureData.bonusActions.length === 0) &&
+               (!creatureData.legendaryActions || creatureData.legendaryActions.length === 0) &&
+               (!creatureData.mythicActions || creatureData.mythicActions.length === 0) && (
+                <div className="text-gray-500 italic text-sm">No traits or actions defined</div>
+              )}
             </div>
           )}
         </div>
       </div>
     </div>
+
+    {/* Trait Selection Modal */}
+    {traitSelectionStep && traitSelectionStep !== null && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-800">Add Trait</h2>
+              <button
+                onClick={cancelTraitSelection}
+                className="text-gray-500 hover:text-gray-700 p-1"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            <p className="text-gray-600 mt-2">
+              Choose a trait template to add to your creature. Templates provide structured options and automatically update relevant stats.
+            </p>
+          </div>
+
+          <div className="p-6 max-h-[70vh] overflow-y-auto">
+            {/* Category Selection */}
+            {traitSelectionStep === 'category' && (
+              <div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-4">Select Category:</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {TRAIT_CATEGORIES.map(category => (
+                    <button
+                      key={category}
+                      onClick={() => selectTraitCategory(category)}
+                      className="p-4 border border-gray-200 rounded-lg hover:border-dnd-coral-400 hover:bg-dnd-coral-50 transition-colors text-left"
+                    >
+                      <div className="font-semibold text-gray-800">{category}</div>
+                      <div className="text-sm text-gray-600 mt-1">
+                        {getTraitsByCategory(category).length} traits
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Search Interface */}
+            {traitSelectionStep === 'search' && (
+              <div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-4">Search Traits:</h3>
+                <div className="mb-4">
+                  <input
+                    type="text"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-dnd-coral-500 focus:border-dnd-coral-500 outline-none"
+                    placeholder="Enter trait name or description keywords..."
+                    value={traitSearchQuery}
+                    onChange={(e) => performTraitSearch(e.target.value)}
+                    autoFocus
+                  />
+                </div>
+                
+                {traitSearchQuery && traitSearchResults.length > 0 && (
+                  <div>
+                    <div className="text-sm text-gray-600 mb-3">
+                      {traitSearchResults.length} result{traitSearchResults.length !== 1 ? 's' : ''} found:
+                    </div>
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      {traitSearchResults.map(trait => {
+                        const traitKey = Object.keys(TRAIT_TEMPLATES).find(key => TRAIT_TEMPLATES[key].name === trait.name)
+                        const hasInputs = getRequiredInputs(trait).length > 0
+                        
+                        return (
+                          <div
+                            key={trait.name}
+                            className="border border-gray-200 rounded-lg p-4 hover:border-dnd-coral-400 hover:bg-dnd-coral-50 cursor-pointer transition-colors"
+                            onClick={() => traitKey && selectTrait(traitKey)}
+                          >
+                            <div className="flex justify-between items-start mb-2">
+                              <div className="font-semibold text-lg text-gray-800">{trait.name}</div>
+                              <div className="flex items-center space-x-2">
+                                {trait.dynamicDescription && (
+                                  <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full">
+                                    Dynamic
+                                  </span>
+                                )}
+                                {hasInputs && (
+                                  <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
+                                    Requires Input
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <div className="text-sm text-gray-500 mb-2">Category: {trait.category}</div>
+                            <div className="text-sm text-gray-700">{trait.description}</div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+                
+                {traitSearchQuery && traitSearchResults.length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    <div className="text-lg mb-2">No traits found matching "{traitSearchQuery}"</div>
+                    <div className="text-sm">Try different keywords or browse by category instead.</div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Trait Selection within Category */}
+            {traitSelectionStep === 'trait' && selectedTraitCategory && (
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-semibold text-gray-800">{selectedTraitCategory} Traits</h3>
+                  <button
+                    onClick={() => setTraitSelectionStep('category')}
+                    className="px-3 py-2 text-dnd-coral-600 hover:text-dnd-coral-700 font-medium"
+                  >
+                    ← Back to Categories
+                  </button>
+                </div>
+                <div className="space-y-3">
+                  {getTraitsByCategory(selectedTraitCategory).map(trait => {
+                    const traitKey = Object.keys(TRAIT_TEMPLATES).find(key => TRAIT_TEMPLATES[key].name === trait.name)
+                    const hasInputs = getRequiredInputs(trait).length > 0
+                    
+                    return (
+                      <div
+                        key={trait.name}
+                        className="border border-gray-200 rounded-lg p-4 hover:border-dnd-coral-400 hover:bg-dnd-coral-50 cursor-pointer transition-colors"
+                        onClick={() => traitKey && selectTrait(traitKey)}
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="font-semibold text-lg text-gray-800">{trait.name}</div>
+                          <div className="flex items-center space-x-2">
+                            {trait.dynamicDescription && (
+                              <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full">
+                                Dynamic
+                              </span>
+                            )}
+                            {hasInputs && (
+                              <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
+                                Requires Input
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-sm text-gray-700">{trait.description}</div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Input Configuration */}
+            {traitSelectionStep === 'inputs' && selectedTraitKey && (
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-semibold text-gray-800">
+                    Configure {TRAIT_TEMPLATES[selectedTraitKey]?.name}
+                  </h3>
+                  <button
+                    onClick={() => setTraitSelectionStep(selectedTraitCategory ? 'trait' : 'search')}
+                    className="px-3 py-2 text-dnd-coral-600 hover:text-dnd-coral-700 font-medium"
+                  >
+                    ← Back to Selection
+                  </button>
+                </div>
+
+                <div className="bg-gray-50 border rounded-lg p-4 mb-6">
+                  <h4 className="font-semibold text-gray-700 mb-2">Original Description:</h4>
+                  <p className="text-gray-600">{TRAIT_TEMPLATES[selectedTraitKey]?.description}</p>
+                </div>
+
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-gray-700">Required Information:</h4>
+                  {getRequiredInputs(TRAIT_TEMPLATES[selectedTraitKey]).map((input, index) => (
+                    <div key={index} className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-700">
+                        {input.inputPrompt}
+                      </label>
+                      {input.inputType === 'select' && input.options ? (
+                        <select
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-dnd-coral-500 focus:border-dnd-coral-500 outline-none"
+                          value={traitUserInputs[`input_${index}`] || ''}
+                          onChange={(e) => updateTraitInput(`input_${index}`, e.target.value)}
+                        >
+                          <option value="">Choose...</option>
+                          {input.options.map(option => (
+                            <option key={option} value={option}>{option}</option>
+                          ))}
+                        </select>
+                      ) : input.inputType === 'number' ? (
+                        <input
+                          type="number"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-dnd-coral-500 focus:border-dnd-coral-500 outline-none"
+                          value={traitUserInputs[`input_${index}`] || ''}
+                          onChange={(e) => updateTraitInput(`input_${index}`, parseInt(e.target.value) || 0)}
+                          placeholder={input.inputPrompt}
+                          min="0"
+                        />
+                      ) : (
+                        <input
+                          type="text"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-dnd-coral-500 focus:border-dnd-coral-500 outline-none"
+                          value={traitUserInputs[`input_${index}`] || ''}
+                          onChange={(e) => updateTraitInput(`input_${index}`, e.target.value)}
+                          placeholder={input.inputPrompt}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Preview */}
+                {(() => {
+                  const validation = validateTraitInputs(TRAIT_TEMPLATES[selectedTraitKey], traitUserInputs)
+                  const finalDescription = generateDynamicDescription(TRAIT_TEMPLATES[selectedTraitKey], traitUserInputs)
+                  
+                  return (
+                    <div className="mt-6">
+                      <h4 className="font-semibold text-gray-700 mb-2">Preview:</h4>
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <div className="font-semibold text-blue-800 mb-2">
+                          {TRAIT_TEMPLATES[selectedTraitKey]?.name}
+                        </div>
+                        <div className="text-blue-700">{finalDescription}</div>
+                      </div>
+                      
+                      {validation.errors.length > 0 && (
+                        <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded text-sm text-red-700">
+                          <strong>Please fix the following:</strong>
+                          <ul className="mt-1 list-disc list-inside">
+                            {validation.errors.map((error, idx) => (
+                              <li key={idx}>{error}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })()}
+              </div>
+            )}
+          </div>
+
+          <div className="p-6 border-t border-gray-200 bg-gray-50">
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={cancelTraitSelection}
+                className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              {traitSelectionStep === 'inputs' && (
+                <button
+                  onClick={completeTrait}
+                  className="px-4 py-2 bg-dnd-coral-600 text-white rounded-md hover:bg-dnd-coral-700 transition-colors"
+                  disabled={!validateTraitInputs(TRAIT_TEMPLATES[selectedTraitKey], traitUserInputs).isValid}
+                >
+                  Add Trait
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
   )
 }

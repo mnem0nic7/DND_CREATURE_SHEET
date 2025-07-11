@@ -1,5 +1,27 @@
 // D&D 5e Constants for dropdowns and validation
 import { SpeedEntry, SenseEntry } from '@/types/creature'
+import { 
+  TRAIT_CATEGORIES, 
+  TRAIT_TEMPLATES, 
+  getTraitsByCategory,
+  searchTraits,
+  generateDynamicDescription,
+  applyTraitEffects,
+  getRequiredInputs,
+  validateTraitInputs
+} from './traits'
+
+// Export trait constants for use in components
+export { 
+  TRAIT_CATEGORIES, 
+  TRAIT_TEMPLATES, 
+  getTraitsByCategory,
+  searchTraits,
+  generateDynamicDescription,
+  applyTraitEffects,
+  getRequiredInputs,
+  validateTraitInputs
+}
 
 export const CREATURE_SIZES = [
   'Tiny',
@@ -503,3 +525,59 @@ export const formatLanguagesString = (languages: import('@/types/creature').Lang
     .filter(lang => lang !== 'None')
     .join(', ')
 }
+
+export const ACTION_TYPES = [
+  'Custom Action',
+  'Melee Weapon Attack',
+  'Ranged Weapon Attack',
+  'Spell Attack',
+  'Area of Effect Spell',
+  'Saving Throw Ability',
+  'Multiattack',
+  'Legendary Action',
+  'Lair Action',
+  'Reaction'
+] as const
+
+export const ACTION_TEMPLATES = {
+  'Custom Action': {
+    name: 'New Action',
+    description: 'Description of the action.'
+  },
+  'Melee Weapon Attack': {
+    name: 'Melee Weapon Attack',
+    description: 'Melee Weapon Attack: +X to hit, reach 5 ft., one target. Hit: X (XdX + X) slashing damage.'
+  },
+  'Ranged Weapon Attack': {
+    name: 'Ranged Weapon Attack', 
+    description: 'Ranged Weapon Attack: +X to hit, range 30/120 ft., one target. Hit: X (XdX + X) piercing damage.'
+  },
+  'Spell Attack': {
+    name: 'Spell Attack',
+    description: 'Spell Attack: +X to hit, range 120 ft., one target. Hit: X (XdX) damage type damage.'
+  },
+  'Area of Effect Spell': {
+    name: 'Area Spell',
+    description: 'Each creature in a X-foot radius must make a DC X Dexterity saving throw. On a failed save, a creature takes X (XdX) damage type damage, or half as much damage on a successful save.'
+  },
+  'Saving Throw Ability': {
+    name: 'Special Ability',
+    description: 'Each creature within X feet must make a DC X Constitution saving throw. On a failed save, the creature is affected by [condition/effect].'
+  },
+  'Multiattack': {
+    name: 'Multiattack',
+    description: 'The creature makes X attacks: X [weapon] attacks and X [other] attacks.'
+  },
+  'Legendary Action': {
+    name: 'Legendary Action',
+    description: 'The creature can take 3 legendary actions, choosing from the options below. Only one legendary action option can be used at a time and only at the end of another creature\'s turn.'
+  },
+  'Lair Action': {
+    name: 'Lair Action',
+    description: 'On initiative count 20 (losing initiative ties), the creature takes a lair action to cause one of the following effects:'
+  },
+  'Reaction': {
+    name: 'Reaction',
+    description: 'Trigger: [describe trigger condition]. Effect: [describe reaction effect].'
+  }
+} as const

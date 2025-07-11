@@ -1,13 +1,16 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Search, Plus, Filter, BookOpen, FileText, FolderOpen } from 'lucide-react'
+import { Search, Plus, Filter, BookOpen, FileText, FolderOpen, TestTube } from 'lucide-react'
 import { CreatureCard } from '@/components/CreatureCard'
 import { StatBlock } from '@/components/StatBlock'
 import { CreatureDisplay } from '@/components/CreatureDisplay'
 import { sampleCreatures } from '@/data/creatures'
 import { Creature } from '@/types/creature'
 import { getStoredCreature } from '@/lib/storage'
+import dynamic from 'next/dynamic'
+
+const TraitTestPage = dynamic(() => import('./trait-test/page'), { ssr: false })
 
 // Default new creature template
 const newCreatureTemplate: Creature = {
@@ -35,7 +38,7 @@ const newCreatureTemplate: Creature = {
   actions: []
 }
 
-type ViewMode = 'home' | 'browse' | 'new' | 'existing'
+type ViewMode = 'home' | 'browse' | 'new' | 'existing' | 'trait-test'
 
 export default function HomePage() {
   const [viewMode, setViewMode] = useState<ViewMode>('home')
@@ -63,8 +66,8 @@ export default function HomePage() {
   }
 
   const renderNavigationCards = () => (
-    <div className="max-w-4xl mx-auto mb-12">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <div className="max-w-6xl mx-auto mb-12">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* New Creature */}
         <div 
           className={`nav-card magical-glow ${viewMode === 'new' ? 'ring-2 ring-dnd-orange-400' : ''}`}
@@ -118,6 +121,24 @@ export default function HomePage() {
             </p>
           </div>
         </div>
+
+        {/* Trait Test */}
+        <div 
+          className={`nav-card magical-glow ${viewMode === 'trait-test' ? 'ring-2 ring-dnd-orange-400' : ''}`}
+          onClick={() => setViewMode('trait-test')}
+        >
+          <div className="text-center">
+            <div className="bg-gradient-to-br from-purple-600 to-purple-700 text-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 shadow-lg floating" style={{ animationDelay: '1.5s' }}>
+              <TestTube className="w-8 h-8" />
+            </div>
+            <h2 className="text-2xl font-fantasy font-semibold text-dnd-ocean-700 mb-2">
+              Trait Test
+            </h2>
+            <p className="text-dnd-ocean-600 font-medium">
+              Test and inspect all trait interfaces and outputs
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -147,6 +168,11 @@ export default function HomePage() {
           <StatBlock creature={newCreature} />
         </div>
       )
+    }
+
+    // Trait Test View
+    if (viewMode === 'trait-test') {
+      return <TraitTestPage />
     }
 
     // Existing Creatures View

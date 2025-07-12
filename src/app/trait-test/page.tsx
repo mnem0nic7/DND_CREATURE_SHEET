@@ -1,6 +1,7 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { Check } from 'lucide-react'
 import { TRAIT_TEMPLATES, TRAIT_CATEGORIES, TraitTemplate, getTraitsByCategory, generateDynamicDescription, getRequiredInputs, validateTraitInputs, applyTraitEffects } from '@/data/traits'
 
 interface TraitTestData {
@@ -10,17 +11,168 @@ interface TraitTestData {
   errors: string[]
   finalDescription: string
   effectsApplied: any
+  isComplete: boolean
+}
+
+// Persistent trait completion storage
+const TRAIT_COMPLETION_KEY = 'dnd-trait-completion-status'
+
+// D&D 5e Spell List for multi-select dropdowns
+const DND_SPELLS = [
+  // Cantrips
+  'Acid Splash', 'Blade Ward', 'Chill Touch', 'Dancing Lights', 'Druidcraft', 'Eldritch Blast',
+  'Fire Bolt', 'Guidance', 'Light', 'Mage Hand', 'Mending', 'Minor Illusion', 'Poison Spray',
+  'Prestidigitation', 'Produce Flame', 'Ray of Frost', 'Resistance', 'Sacred Flame', 'Shillelagh',
+  'Shocking Grasp', 'Spare the Dying', 'Thaumaturgy', 'Thorn Whip', 'True Strike', 'Vicious Mockery',
+  
+  // 1st Level
+  'Alarm', 'Animal Friendship', 'Bane', 'Bless', 'Burning Hands', 'Charm Person', 'Comprehend Languages',
+  'Cure Wounds', 'Detect Magic', 'Disguise Self', 'Faerie Fire', 'False Life', 'Feather Fall',
+  'Find Familiar', 'Fog Cloud', 'Goodberry', 'Grease', 'Guiding Bolt', 'Healing Word', 'Heat Metal',
+  'Hold Person', 'Hunter\'s Mark', 'Identify', 'Inflict Wounds', 'Jump', 'Longstrider', 'Mage Armor',
+  'Magic Missile', 'Protection from Evil and Good', 'Shield', 'Sleep', 'Speak with Animals',
+  'Spiritual Weapon', 'Thunderwave', 'Unseen Servant',
+  
+  // 2nd Level
+  'Aid', 'Alter Self', 'Animal Messenger', 'Augury', 'Barkskin', 'Beast Sense', 'Blindness/Deafness',
+  'Blur', 'Cloud of Daggers', 'Continual Flame', 'Darkness', 'Darkvision', 'Detect Thoughts',
+  'Enhance Ability', 'Enlarge/Reduce', 'Flaming Sphere', 'Gentle Repose', 'Heat Metal', 'Hold Person',
+  'Invisibility', 'Knock', 'Lesser Restoration', 'Levitate', 'Locate Object', 'Magic Weapon',
+  'Mirror Image', 'Misty Step', 'Pass without Trace', 'Prayer of Healing', 'Scorching Ray',
+  'See Invisibility', 'Shatter', 'Shield of Faith', 'Silence', 'Spider Climb', 'Suggestion',
+  'Web', 'Zone of Truth',
+  
+  // 3rd Level
+  'Animate Dead', 'Bestow Curse', 'Blink', 'Call Lightning', 'Clairvoyance', 'Counterspell',
+  'Create Food and Water', 'Daylight', 'Dispel Magic', 'Fear', 'Fireball', 'Fly', 'Gaseous Form',
+  'Glyph of Warding', 'Haste', 'Hypnotic Pattern', 'Lightning Bolt', 'Magic Circle', 'Major Image',
+  'Mass Healing Word', 'Meld into Stone', 'Plant Growth', 'Protection from Energy', 'Remove Curse',
+  'Revivify', 'Sending', 'Slow', 'Speak with Dead', 'Spirit Guardians', 'Stinking Cloud',
+  'Tongues', 'Vampiric Touch', 'Water Breathing', 'Wind Wall',
+  
+  // 4th Level
+  'Arcane Eye', 'Banishment', 'Blight', 'Confusion', 'Conjure Minor Elementals', 'Control Water',
+  'Death Ward', 'Dimension Door', 'Divination', 'Dominate Beast', 'Fabricate', 'Fire Shield',
+  'Freedom of Movement', 'Giant Insect', 'Greater Invisibility', 'Guardian of Faith', 'Hallucinatory Terrain',
+  'Ice Storm', 'Locate Creature', 'Phantasmal Killer', 'Polymorph', 'Stone Shape', 'Stoneskin',
+  'Wall of Fire', 'Wall of Stone',
+  
+  // 5th Level
+  'Animate Objects', 'Antilife Shell', 'Awaken', 'Banishing Smite', 'Bigby\'s Hand', 'Circle of Power',
+  'Cloudkill', 'Commune', 'Cone of Cold', 'Conjure Elemental', 'Contact Other Plane', 'Contagion',
+  'Creation', 'Dominate Person', 'Dream', 'Flame Strike', 'Geas', 'Greater Restoration', 'Hold Monster',
+  'Insect Plague', 'Legend Lore', 'Mass Cure Wounds', 'Mislead', 'Modify Memory', 'Passwall',
+  'Planar Binding', 'Raise Dead', 'Reincarnate', 'Scrying', 'Seeming', 'Telekinesis', 'Teleportation Circle',
+  'Tree Stride', 'Wall of Force', 'Wall of Stone',
+  
+  // 6th Level
+  'Arcane Gate', 'Chain Lightning', 'Circle of Death', 'Contingency', 'Create Undead', 'Disintegrate',
+  'Eyebite', 'Find the Path', 'Flesh to Stone', 'Forbiddance', 'Globe of Invulnerability', 'Guards and Wards',
+  'Harm', 'Heal', 'Heroes\' Feast', 'Magic Jar', 'Mass Suggestion', 'Move Earth', 'Otto\'s Irresistible Dance',
+  'Planar Ally', 'Programmed Illusion', 'Sunbeam', 'Transport via Plants', 'True Seeing', 'Wall of Ice',
+  'Wind Walk', 'Word of Recall',
+  
+  // 7th Level
+  'Delayed Blast Fireball', 'Etherealness', 'Finger of Death', 'Fire Storm', 'Force Cage', 'Mirage Arcane',
+  'Mordenkainen\'s Sword', 'Plane Shift', 'Prismatic Spray', 'Project Image', 'Regenerate', 'Resurrection',
+  'Reverse Gravity', 'Sequester', 'Simulacrum', 'Symbol', 'Teleport',
+  
+  // 8th Level
+  'Animal Shapes', 'Antimagic Field', 'Clone', 'Control Weather', 'Demiplane', 'Dominate Monster',
+  'Earthquake', 'Feeblemind', 'Holy Aura', 'Incendiary Cloud', 'Maze', 'Mind Blank', 'Power Word Stun',
+  'Sunburst', 'Telepathic Bond',
+  
+  // 9th Level
+  'Astral Projection', 'Foresight', 'Gate', 'Imprisonment', 'Mass Heal', 'Meteor Swarm', 'Power Word Kill',
+  'Prismatic Wall', 'Shapechange', 'Storm of Vengeance', 'Time Stop', 'True Polymorph', 'Weird', 'Wish'
+].sort()
+
+const loadTraitCompletionStatus = (): Record<string, boolean> => {
+  if (typeof window === 'undefined') return {}
+  try {
+    const stored = localStorage.getItem(TRAIT_COMPLETION_KEY)
+    return stored ? JSON.parse(stored) : {}
+  } catch {
+    return {}
+  }
+}
+
+const saveTraitCompletionStatus = (completionStatus: Record<string, boolean>) => {
+  if (typeof window === 'undefined') return
+  try {
+    localStorage.setItem(TRAIT_COMPLETION_KEY, JSON.stringify(completionStatus))
+  } catch (error) {
+    console.error('Failed to save trait completion status:', error)
+  }
 }
 
 const TraitTestPage = () => {
+  // Environment check - only show in development
+  const isDevelopment = process.env.NODE_ENV === 'development'
+  
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [testResults, setTestResults] = useState<Record<string, TraitTestData>>({})
   const [showInputs, setShowInputs] = useState<Record<string, boolean>>({})
+  const [hideCompleted, setHideCompleted] = useState<boolean>(false)
+  const [traitCompletionStatus, setTraitCompletionStatus] = useState<Record<string, boolean>>({})
+
+  // Load persistent completion status on mount
+  useEffect(() => {
+    const completionStatus = loadTraitCompletionStatus()
+    setTraitCompletionStatus(completionStatus)
+  }, [])
+
+  // Save completion status when it changes
+  useEffect(() => {
+    saveTraitCompletionStatus(traitCompletionStatus)
+  }, [traitCompletionStatus])
+
+  // Production fallback - show message instead of interface
+  if (!isDevelopment) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-dnd-ocean-400 to-dnd-ocean-600 p-4 flex items-center justify-center">
+        <div className="bg-white rounded-xl shadow-lg p-8 max-w-md text-center">
+          <h1 className="text-2xl font-bold text-dnd-ocean-800 mb-4">Development Only</h1>
+          <p className="text-gray-600 mb-4">
+            The traits test interface is only available in development mode.
+          </p>
+          <p className="text-sm text-gray-500">
+            To access this interface, run the application in development mode.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  // Calculate overall completion stats
+  const getOverallCompletionStats = () => {
+    let totalTraits = 0
+    let completedTraits = 0
+    
+    Object.keys(TRAIT_TEMPLATES).forEach(traitKey => {
+      totalTraits++
+      if (traitCompletionStatus[traitKey]) {
+        completedTraits++
+      }
+    })
+    
+    return { totalTraits, completedTraits }
+  }
 
   // Initialize test data for a trait
   const initializeTraitTest = (traitKey: string, trait: TraitTemplate) => {
     const requiredInputs = getRequiredInputs(trait)
     const defaultInputs: Record<string, any> = {}
+    
+    // Create mock creature with basic stats only
+    const mockCreature = {
+      languageEntries: [{ language: 'Common', isCustom: false }],
+      senseEntries: [{ type: 'Passive Perception', range: 10, isCalculated: true }],
+      speedEntries: [{ type: 'walk', distance: 30 }], // Only walking speed initially
+      damageImmunities: [],
+      damageResistances: [],
+      conditionImmunities: []
+    }
     
     // Set default values for inputs
     requiredInputs.forEach((input, index) => {
@@ -59,14 +211,6 @@ const TraitTestPage = () => {
 
     const validation = validateTraitInputs(trait, defaultInputs)
     const finalDescription = generateDynamicDescription(trait, defaultInputs)
-    const mockCreature = {
-      languageEntries: [{ language: 'Common', isCustom: false }],
-      senseEntries: [{ type: 'Passive Perception', range: 10, isCalculated: true }],
-      speedEntries: [{ type: 'walk', distance: 30 }],
-      damageImmunities: [],
-      damageResistances: [],
-      conditionImmunities: []
-    }
     const effectsApplied = applyTraitEffects(mockCreature, trait, defaultInputs)
 
     setTestResults(prev => ({
@@ -77,7 +221,8 @@ const TraitTestPage = () => {
         isValid: validation.isValid,
         errors: validation.errors,
         finalDescription,
-        effectsApplied
+        effectsApplied,
+        isComplete: traitCompletionStatus[traitKey] || false // Use persistent completion status
       }
     }))
   }
@@ -93,7 +238,7 @@ const TraitTestPage = () => {
     const mockCreature = {
       languageEntries: [{ language: 'Common', isCustom: false }],
       senseEntries: [{ type: 'Passive Perception', range: 10, isCalculated: true }],
-      speedEntries: [{ type: 'walk', distance: 30 }],
+      speedEntries: [{ type: 'walk', distance: 30 }], // Only walking speed initially
       damageImmunities: [],
       damageResistances: [],
       conditionImmunities: []
@@ -113,6 +258,68 @@ const TraitTestPage = () => {
     }))
   }
 
+  // Toggle completion status for a trait
+  const toggleTraitComplete = (traitKey: string) => {
+    const newCompletionStatus = !traitCompletionStatus[traitKey]
+    
+    // Update persistent storage
+    setTraitCompletionStatus(prev => ({
+      ...prev,
+      [traitKey]: newCompletionStatus
+    }))
+    
+    // Update test results if they exist
+    const currentTest = testResults[traitKey]
+    if (currentTest) {
+      setTestResults(prev => ({
+        ...prev,
+        [traitKey]: {
+          ...currentTest,
+          isComplete: newCompletionStatus
+        }
+      }))
+    }
+  }
+
+  // Bulk completion functions
+  const markAllComplete = () => {
+    const allTraitKeys = Object.keys(TRAIT_TEMPLATES)
+    const newCompletionStatus: Record<string, boolean> = {}
+    
+    allTraitKeys.forEach(key => {
+      newCompletionStatus[key] = true
+    })
+    
+    setTraitCompletionStatus(prev => ({ ...prev, ...newCompletionStatus }))
+    
+    setTestResults(prev => {
+      const updated: Record<string, TraitTestData> = {}
+      Object.keys(prev).forEach(key => {
+        updated[key] = { ...prev[key], isComplete: true }
+      })
+      return updated
+    })
+  }
+
+  const markAllIncomplete = () => {
+    const allTraitKeys = Object.keys(TRAIT_TEMPLATES)
+    const newCompletionStatus: Record<string, boolean> = {}
+    
+    allTraitKeys.forEach(key => {
+      newCompletionStatus[key] = false
+    })
+    
+    setTraitCompletionStatus(prev => ({ ...prev, ...newCompletionStatus }))
+    
+    setTestResults(prev => {
+      const updated: Record<string, TraitTestData> = {}
+      Object.keys(prev).forEach(key => {
+        updated[key] = { ...prev[key], isComplete: false }
+      })
+      return updated
+    })
+  }
+
   // Render trait input interface
   const renderTraitInputs = (traitKey: string, trait: TraitTemplate) => {
     const requiredInputs = getRequiredInputs(trait)
@@ -121,12 +328,104 @@ const TraitTestPage = () => {
     const testData = testResults[traitKey]
     if (!testData) return null
 
+    // Multi-select spell component
+    const SpellSelector = ({ selectedSpells, onChange }: { selectedSpells: string[], onChange: (spells: string[]) => void }) => {
+      const [isOpen, setIsOpen] = useState(false)
+      const [searchTerm, setSearchTerm] = useState('')
+      
+      const toggleSpell = (spell: string) => {
+        if (selectedSpells.includes(spell)) {
+          onChange(selectedSpells.filter(s => s !== spell))
+        } else {
+          onChange([...selectedSpells, spell])
+        }
+      }
+      
+      const filteredSpells = DND_SPELLS.filter(spell => 
+        spell.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+      
+      return (
+        <div className="relative">
+          <div 
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white cursor-pointer flex justify-between items-center"
+            onClick={() => setIsOpen(!isOpen)}
+          >
+            <span className="text-gray-700">
+              {selectedSpells.length === 0 
+                ? 'Select spells...' 
+                : `${selectedSpells.length} spell${selectedSpells.length !== 1 ? 's' : ''} selected`
+              }
+            </span>
+            <span className="text-gray-400">{isOpen ? '▲' : '▼'}</span>
+          </div>
+          
+          {selectedSpells.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1">
+              {selectedSpells.map(spell => (
+                <span 
+                  key={spell} 
+                  className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                >
+                  {spell}
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      toggleSpell(spell)
+                    }}
+                    className="text-blue-600 hover:text-blue-800"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+          
+          {isOpen && (
+            <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+              <div className="p-2">
+                <input
+                  type="text"
+                  placeholder="Search spells..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full px-2 py-1 text-sm border border-gray-200 rounded"
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </div>
+              {filteredSpells.map(spell => (
+                <div
+                  key={spell}
+                  className={`px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 ${
+                    selectedSpells.includes(spell) ? 'bg-blue-50 text-blue-700' : ''
+                  }`}
+                  onClick={() => toggleSpell(spell)}
+                >
+                  <span className="flex items-center justify-between">
+                    {spell}
+                    {selectedSpells.includes(spell) && <span className="text-blue-600">✓</span>}
+                  </span>
+                </div>
+              ))}
+              {filteredSpells.length === 0 && (
+                <div className="px-3 py-2 text-sm text-gray-500 italic">
+                  No spells found matching "{searchTerm}"
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )
+    }
+
     return (
       <div className="mt-4 p-4 bg-gray-50 border rounded-lg">
         <h4 className="font-semibold text-sm text-gray-700 mb-3">Required Inputs:</h4>
         {requiredInputs.map((input, index) => {
           const inputKey = `input_${index}`
           const value = testData.userInputs[inputKey] || ''
+          const isSpellInput = input.inputPrompt?.toLowerCase().includes('spell')
 
           return (
             <div key={index} className="mb-3">
@@ -143,6 +442,11 @@ const TraitTestPage = () => {
                     <option key={option} value={option}>{option}</option>
                   ))}
                 </select>
+              ) : isSpellInput ? (
+                <SpellSelector
+                  selectedSpells={typeof value === 'string' ? value.split(', ').filter(Boolean) : []}
+                  onChange={(spells) => updateTraitInput(traitKey, inputKey, spells.join(', '))}
+                />
               ) : input.inputType === 'number' ? (
                 <input
                   type="number"
@@ -259,7 +563,44 @@ const TraitTestPage = () => {
 
           {/* Category Selection */}
           <div className="mb-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-3">Select Category to Test:</h2>
+            <div className="flex justify-between items-center mb-3">
+              <h2 className="text-xl font-semibold text-gray-800">Select Category to Test:</h2>
+              
+              <div className="flex items-center gap-4">
+                {/* Overall Completion Stats */}
+                <div className="text-sm text-gray-600 bg-gray-100 px-3 py-2 rounded-lg">
+                  {(() => {
+                    const { totalTraits, completedTraits } = getOverallCompletionStats()
+                    return (
+                      <span className="flex items-center gap-2">
+                        <span className="font-medium text-gray-700">Total Progress:</span>
+                        <span className="text-green-600 font-semibold">{completedTraits}</span>
+                        <span className="text-gray-500">/</span>
+                        <span className="text-gray-700 font-semibold">{totalTraits}</span>
+                        <span className="text-gray-500">traits</span>
+                        {totalTraits > 0 && (
+                          <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+                            {Math.round((completedTraits / totalTraits) * 100)}%
+                          </span>
+                        )}
+                      </span>
+                    )
+                  })()}
+                </div>
+                
+                {/* Hide Completed Toggle */}
+                <label className="flex items-center gap-2 text-sm text-gray-700 bg-gray-100 px-3 py-2 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={hideCompleted}
+                    onChange={(e) => setHideCompleted(e.target.checked)}
+                    className="w-4 h-4 text-dnd-coral-500 border-gray-300 rounded focus:ring-dnd-coral-500"
+                  />
+                  <span className="font-medium">Hide Completed</span>
+                </label>
+              </div>
+            </div>
+            
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
               {TRAIT_CATEGORIES.map(category => (
                 <button
@@ -292,12 +633,83 @@ const TraitTestPage = () => {
           {/* Traits Display */}
           {selectedCategory && (
             <div>
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">
-                {selectedCategory} Traits ({getTraitsByCategory(selectedCategory).length})
-              </h2>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold text-gray-800">
+                  {selectedCategory} Traits ({(() => {
+                    const allTraits = getTraitsByCategory(selectedCategory)
+                    if (!hideCompleted) return allTraits.length
+                    
+                    const visibleTraits = allTraits.filter(trait => {
+                      const traitKey = Object.keys(TRAIT_TEMPLATES).find(key => 
+                        TRAIT_TEMPLATES[key].name === trait.name
+                      )
+                      if (!traitKey) return true
+                      
+                      return !traitCompletionStatus[traitKey]
+                    })
+                    return `${visibleTraits.length} of ${allTraits.length} shown`
+                  })()})
+                </h2>
+                
+                {/* Completion Summary and Controls */}
+                <div className="flex items-center gap-4">
+                  {/* Completion Status Summary */}
+                  <div className="text-sm text-gray-600">
+                    {(() => {
+                      const categoryTraits = getTraitsByCategory(selectedCategory)
+                      const relevantKeys = categoryTraits
+                        .map(trait => Object.keys(TRAIT_TEMPLATES).find(key => 
+                          TRAIT_TEMPLATES[key].name === trait.name
+                        ))
+                        .filter(Boolean) as string[]
+                      
+                      const total = relevantKeys.length
+                      const complete = relevantKeys.filter(key => traitCompletionStatus[key]).length
+                      const incomplete = total - complete
+                      
+                      return (
+                        <span className="flex items-center gap-2">
+                          <span className="text-green-600 font-medium">{complete} complete</span>
+                          {incomplete > 0 && (
+                            <span className="text-orange-600 font-medium">{incomplete} need work</span>
+                          )}
+                        </span>
+                      )
+                    })()}
+                  </div>
+                  
+                  {/* Bulk Completion Controls */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={markAllComplete}
+                      className="flex items-center gap-1 px-3 py-1 text-sm text-green-600 hover:text-green-800 bg-green-100 hover:bg-green-200 rounded-lg transition-colors"
+                    >
+                      <Check size={12} />
+                      Mark All Complete
+                    </button>
+                    <button
+                      onClick={markAllIncomplete}
+                      className="px-3 py-1 text-sm text-orange-600 hover:text-orange-800 bg-orange-100 hover:bg-orange-200 rounded-lg transition-colors"
+                    >
+                      Mark All Incomplete
+                    </button>
+                  </div>
+                </div>
+              </div>
               
               <div className="space-y-6">
-                {getTraitsByCategory(selectedCategory).map(trait => {
+                {getTraitsByCategory(selectedCategory)
+                  .filter(trait => {
+                    if (!hideCompleted) return true
+                    
+                    const traitKey = Object.keys(TRAIT_TEMPLATES).find(key => 
+                      TRAIT_TEMPLATES[key].name === trait.name
+                    )
+                    if (!traitKey) return true
+                    
+                    return !traitCompletionStatus[traitKey]
+                  })
+                  .map(trait => {
                   const traitKey = Object.keys(TRAIT_TEMPLATES).find(key => 
                     TRAIT_TEMPLATES[key].name === trait.name
                   )
@@ -305,16 +717,41 @@ const TraitTestPage = () => {
 
                   const testData = testResults[traitKey]
                   const hasInputs = getRequiredInputs(trait).length > 0
+                  const isComplete = traitCompletionStatus[traitKey] || false
 
                   return (
-                    <div key={traitKey} className="border border-gray-200 rounded-lg p-5 bg-gray-50">
+                    <div key={traitKey} className={`border rounded-lg p-5 transition-colors ${
+                      isComplete 
+                        ? 'border-green-400 bg-green-50' 
+                        : 'border-gray-200 bg-gray-50'
+                    }`}>
                       {/* Trait Header */}
                       <div className="flex justify-between items-start mb-3">
                         <div>
-                          <h3 className="text-lg font-bold text-gray-800">{trait.name}</h3>
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-lg font-bold text-gray-800">{trait.name}</h3>
+                            {isComplete && (
+                              <span className="text-xs text-green-600 font-medium bg-green-100 px-2 py-1 rounded-full">
+                                ✓ COMPLETE
+                              </span>
+                            )}
+                          </div>
                           <p className="text-sm text-gray-500">{trait.category}</p>
                         </div>
                         <div className="flex items-center space-x-2">
+                          {/* Completion Toggle Button */}
+                          <button
+                            onClick={() => toggleTraitComplete(traitKey)}
+                            className={`p-2 rounded-full transition-colors ${
+                              isComplete
+                                ? 'text-green-600 hover:text-green-800 bg-green-100 hover:bg-green-200'
+                                : 'text-gray-400 hover:text-green-600 bg-gray-100 hover:bg-green-50'
+                            }`}
+                            title={isComplete ? 'Mark as incomplete' : 'Mark as complete'}
+                          >
+                            <Check size={16} />
+                          </button>
+                          
                           {trait.dynamicDescription && (
                             <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full">
                               Dynamic

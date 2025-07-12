@@ -76,6 +76,7 @@ export interface Creature {
 export interface SpecialAbility {
   name: string
   description: string
+  isComplete?: boolean // Marks if the trait is finalized and doesn't need fixing
 }
 
 export interface Action {

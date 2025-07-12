@@ -34,7 +34,13 @@
   "languages": "Common",
   "challenge": "0 (10 XP)",
   "proficiencyBonus": "+2",
-  "specialAbilities": [],
+  "specialAbilities": [
+    {
+      "name": "Sample Trait",
+      "description": "This is a sample trait to demonstrate the completion feature. You can mark it as complete or incomplete.",
+      "isComplete": false
+    }
+  ],
   "actions": [],
   "legendaryActions": []
 }

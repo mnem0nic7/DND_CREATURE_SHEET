@@ -1,7 +1,7 @@
 import { Creature, SpeedEntry, SavingThrowEntry, SkillEntry, SenseEntry, LanguageEntry } from '@/types/creature'
 import { TraitTemplate } from '@/data/traits'
 import { useState, useEffect, useRef } from 'react'
-import { Plus, Trash2, X } from 'lucide-react'
+import { Plus, Trash2, X, Check } from 'lucide-react'
 import { 
   CREATURE_SIZES, 
   CREATURE_TYPES, 
@@ -956,11 +956,38 @@ export function StatBlock({ creature }: StatBlockProps) {
     }))
   }
 
-  const updateSpecialAbility = (index: number, field: 'name' | 'description', value: string) => {
+  const updateSpecialAbility = (index: number, field: 'name' | 'description' | 'isComplete', value: string | boolean) => {
     setCreatureData(prev => ({
       ...prev,
       specialAbilities: prev.specialAbilities?.map((ability, i) => 
         i === index ? { ...ability, [field]: value } : ability
+      ) || []
+    }))
+  }
+
+  const toggleSpecialAbilityComplete = (index: number) => {
+    setCreatureData(prev => ({
+      ...prev,
+      specialAbilities: prev.specialAbilities?.map((ability, i) => 
+        i === index ? { ...ability, isComplete: !ability.isComplete } : ability
+      ) || []
+    }))
+  }
+
+  const markAllTraitsComplete = () => {
+    setCreatureData(prev => ({
+      ...prev,
+      specialAbilities: prev.specialAbilities?.map(ability => 
+        ({ ...ability, isComplete: true })
+      ) || []
+    }))
+  }
+
+  const markAllTraitsIncomplete = () => {
+    setCreatureData(prev => ({
+      ...prev,
+      specialAbilities: prev.specialAbilities?.map(ability => 
+        ({ ...ability, isComplete: false })
       ) || []
     }))
   }
@@ -2363,7 +2390,26 @@ export function StatBlock({ creature }: StatBlockProps) {
               {/* Traits Section */}
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-lg font-bold">Traits</h3>
+                  <div className="flex items-center gap-3">
+                    <h3 className="text-lg font-bold">Traits</h3>
+                    {creatureData.specialAbilities && creatureData.specialAbilities.length > 0 && (
+                      <div className="text-xs text-gray-600">
+                        {(() => {
+                          const total = creatureData.specialAbilities.length
+                          const complete = creatureData.specialAbilities.filter(a => a.isComplete).length
+                          const incomplete = total - complete
+                          return (
+                            <span className="flex items-center gap-2">
+                              <span className="text-green-600 font-medium">{complete} complete</span>
+                              {incomplete > 0 && (
+                                <span className="text-orange-600 font-medium">{incomplete} need work</span>
+                              )}
+                            </span>
+                          )
+                        })()}
+                      </div>
+                    )}
+                  </div>
                   <div className="flex items-center gap-2">
                     {traitSelectionStep === null && (
                       <select 
@@ -2382,7 +2428,11 @@ export function StatBlock({ creature }: StatBlockProps) {
                 
                 <div className="space-y-3">
                   {creatureData.specialAbilities?.map((ability, index) => (
-                    <div key={index} className="border border-gray-300 rounded p-2 relative">
+                    <div key={index} className={`border rounded p-2 relative transition-colors ${
+                      ability.isComplete 
+                        ? 'border-green-400 bg-green-50' 
+                        : 'border-gray-300'
+                    }`}>
                       <button
                         onClick={() => removeSpecialAbility(index)}
                         className="absolute top-1 right-1 text-red-600 hover:text-red-800"
@@ -2390,18 +2440,40 @@ export function StatBlock({ creature }: StatBlockProps) {
                         <Trash2 size={12} />
                       </button>
                       
-                      <div className="space-y-2 pr-6">
-                        <input
-                          type="text"
-                          value={ability.name}
-                          onChange={(e) => updateSpecialAbility(index, 'name', e.target.value)}
-                          className="w-full bg-transparent border-b border-red-600 focus:border-red-800 outline-none font-bold"
-                          placeholder="Trait Name"
-                        />
+                      {/* Completion Status Toggle */}
+                      <button
+                        onClick={() => toggleSpecialAbilityComplete(index)}
+                        className={`absolute top-1 right-8 p-1 rounded transition-colors ${
+                          ability.isComplete
+                            ? 'text-green-600 hover:text-green-800 bg-green-100'
+                            : 'text-gray-400 hover:text-green-600 hover:bg-green-50'
+                        }`}
+                        title={ability.isComplete ? 'Mark as incomplete' : 'Mark as complete'}
+                      >
+                        <Check size={12} />
+                      </button>
+                      
+                      <div className="space-y-2 pr-12">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={ability.name}
+                            onChange={(e) => updateSpecialAbility(index, 'name', e.target.value)}
+                            className={`w-full bg-transparent border-b focus:border-red-800 outline-none font-bold ${
+                              ability.isComplete ? 'border-green-600' : 'border-red-600'
+                            }`}
+                            placeholder="Trait Name"
+                          />
+                          {ability.isComplete && (
+                            <span className="text-xs text-green-600 font-medium">COMPLETE</span>
+                          )}
+                        </div>
                         <textarea
                           value={ability.description}
                           onChange={(e) => updateSpecialAbility(index, 'description', e.target.value)}
-                          className="w-full bg-transparent border border-red-600 focus:border-red-800 outline-none p-1 resize-none text-sm"
+                          className={`w-full bg-transparent border focus:border-red-800 outline-none p-1 resize-none text-sm ${
+                            ability.isComplete ? 'border-green-600' : 'border-red-600'
+                          }`}
                           rows={2}
                           placeholder="Trait description..."
                         />
@@ -2410,12 +2482,27 @@ export function StatBlock({ creature }: StatBlockProps) {
                   )) || []}
                   
                   {(creatureData.specialAbilities || []).length > 0 && (
-                    <button
-                      onClick={() => setCreatureData(prev => ({ ...prev, specialAbilities: [] }))}
-                      className="text-red-600 hover:text-red-800 text-sm hover:underline"
-                    >
-                      Clear All Traits
-                    </button>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        onClick={markAllTraitsComplete}
+                        className="text-green-600 hover:text-green-800 text-sm hover:underline flex items-center gap-1"
+                      >
+                        <Check size={12} />
+                        Mark All Complete
+                      </button>
+                      <button
+                        onClick={markAllTraitsIncomplete}
+                        className="text-orange-600 hover:text-orange-800 text-sm hover:underline"
+                      >
+                        Mark All Incomplete
+                      </button>
+                      <button
+                        onClick={() => setCreatureData(prev => ({ ...prev, specialAbilities: [] }))}
+                        className="text-red-600 hover:text-red-800 text-sm hover:underline"
+                      >
+                        Clear All Traits
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
@@ -2655,9 +2742,21 @@ export function StatBlock({ creature }: StatBlockProps) {
                   <h3 className="text-lg font-bold mb-3">Traits</h3>
                   <div className="space-y-3 text-sm">
                     {creatureData.specialAbilities.map((ability, index) => (
-                      <div key={index}>
-                        <span className="stat-name">{ability.name}.</span>{' '}
-                        <span className="stat-value">{ability.description}</span>
+                      <div key={index} className={`relative ${
+                        ability.isComplete ? 'bg-green-50 border-l-4 border-green-400 pl-3 py-1' : ''
+                      }`}>
+                        <div className="flex items-start gap-2">
+                          <div className="flex-1">
+                            <span className="stat-name">{ability.name}.</span>{' '}
+                            <span className="stat-value">{ability.description}</span>
+                          </div>
+                          {ability.isComplete && (
+                            <div className="flex items-center gap-1 text-green-600 text-xs font-medium mt-0.5">
+                              <Check size={12} />
+                              <span>COMPLETE</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -2736,7 +2835,6 @@ export function StatBlock({ creature }: StatBlockProps) {
           )}
         </div>
       </div>
-    </div>
 
     {/* Trait Selection Modal */}
     {traitSelectionStep && traitSelectionStep !== null && (
@@ -3003,5 +3101,6 @@ export function StatBlock({ creature }: StatBlockProps) {
         </div>
       </div>
     )}
+    </div>
   )
 }

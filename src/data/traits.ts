@@ -37,16 +37,7 @@ export const TRAIT_TEMPLATES: Record<string, TraitTemplate> = {
   'amphibious': {
     name: 'Amphibious',
     description: 'The creature can breathe air and water.',
-    category: 'Movement & Positioning',
-    effects: [
-      {
-        type: 'speed',
-        value: 'swim',
-        requiresInput: true,
-        inputPrompt: 'Swimming speed (in feet)',
-        inputType: 'number'
-      }
-    ]
+    category: 'Movement & Positioning'
   },
   'flyby': {
     name: 'Flyby',

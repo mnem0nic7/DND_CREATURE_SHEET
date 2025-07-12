@@ -35,6 +35,13 @@ const newCreatureTemplate: Creature = {
   cha: 10,
   senses: ['Passive Perception 10'],
   languages: ['Common'],
+  specialAbilities: [
+    {
+      name: 'Sample Trait',
+      description: 'This is a sample trait to demonstrate the completion feature. Click the checkmark to mark it complete!',
+      isComplete: false
+    }
+  ],
   actions: []
 }
 
@@ -65,12 +72,15 @@ export default function HomePage() {
     setSelectedCreature(creature)
   }
 
-  const renderNavigationCards = () => (
-    <div className="max-w-6xl mx-auto mb-12">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* New Creature */}
-        <div 
-          className={`nav-card magical-glow ${viewMode === 'new' ? 'ring-2 ring-dnd-orange-400' : ''}`}
+  const renderNavigationCards = () => {
+    const isDevelopment = process.env.NODE_ENV === 'development'
+    
+    return (
+      <div className="max-w-6xl mx-auto mb-12">
+        <div className={`grid grid-cols-1 md:grid-cols-2 ${isDevelopment ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-6`}>
+          {/* New Creature */}
+          <div 
+            className={`nav-card magical-glow ${viewMode === 'new' ? 'ring-2 ring-dnd-orange-400' : ''}`}
           onClick={() => setViewMode('new')}
         >
           <div className="text-center">
@@ -122,26 +132,28 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Trait Test */}
-        <div 
-          className={`nav-card magical-glow ${viewMode === 'trait-test' ? 'ring-2 ring-dnd-orange-400' : ''}`}
-          onClick={() => setViewMode('trait-test')}
-        >
-          <div className="text-center">
-            <div className="bg-gradient-to-br from-purple-600 to-purple-700 text-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 shadow-lg floating" style={{ animationDelay: '1.5s' }}>
-              <TestTube className="w-8 h-8" />
+        {/* Trait Test - Development Only */}
+        {isDevelopment && (
+          <div 
+            className={`nav-card magical-glow ${viewMode === 'trait-test' ? 'ring-2 ring-dnd-orange-400' : ''}`}
+            onClick={() => setViewMode('trait-test')}
+          >
+            <div className="text-center">
+              <div className="bg-gradient-to-br from-purple-600 to-purple-700 text-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 shadow-lg floating" style={{ animationDelay: '1.5s' }}>
+                <TestTube className="w-8 h-8" />
+              </div>
+              <h2 className="text-2xl font-fantasy font-semibold text-dnd-ocean-700 mb-2">
+                Trait Test
+              </h2>
+              <p className="text-dnd-ocean-600 font-medium">
+                Test and inspect all trait interfaces and outputs (Dev Only)
+              </p>
             </div>
-            <h2 className="text-2xl font-fantasy font-semibold text-dnd-ocean-700 mb-2">
-              Trait Test
-            </h2>
-            <p className="text-dnd-ocean-600 font-medium">
-              Test and inspect all trait interfaces and outputs
-            </p>
           </div>
-        </div>
+        )}
       </div>
     </div>
-  )
+  )}
 
   const renderContent = () => {
     // Creature Detail View
